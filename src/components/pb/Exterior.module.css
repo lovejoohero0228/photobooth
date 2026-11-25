@@ -1,0 +1,633 @@
+.root {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  padding: calc(8px + var(--safe-t)) 8px calc(8px + var(--safe-b));
+  background:
+    radial-gradient(90% 60% at 50% 52%, #1b1713 0%, transparent 70%),
+    var(--night);
+  overflow: hidden;
+  opacity: 0;
+}
+.root[data-ready="true"] {
+  animation: appear 0.7s var(--ease-out) both;
+}
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fit {
+  position: relative;
+  height: min(calc(100dvh - 44px - var(--safe-t) - var(--safe-b)), calc((100vw - 16px) * 640 / 360));
+  aspect-ratio: 360 / 640;
+  /* 문 한가운데를 기준으로 빨려 들어간다 */
+  transform-origin: 61.7% 58%;
+}
+.art {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 360px;
+  height: 640px;
+  transform-origin: 0 0;
+}
+.art * {
+  position: absolute;
+}
+
+/* ── 바닥: 플래시가 닿는 곳만 드러나는 아스팔트 */
+.ground {
+  left: -60px;
+  right: -60px;
+  top: 596px;
+  height: 70px;
+  background:
+    var(--tex-soft-l),
+    radial-gradient(60% 100% at 50% 0%, #4a443c 0%, #1c1916 55%, transparent 100%);
+  background-size:
+    140px 140px,
+    auto;
+  opacity: 0.9;
+}
+/* 플래시가 만든 벽 그림자 */
+.cast {
+  left: 2px;
+  top: 134px;
+  width: 356px;
+  height: 480px;
+  background: #000;
+  filter: blur(14px);
+  opacity: 0.75;
+}
+
+/* ── 조명 간판: 알루미늄 상자 + 안에서 불이 들어오는 아크릴 */
+.sign {
+  left: 58px;
+  top: 34px;
+  width: 244px;
+  height: 70px;
+  border-radius: 3px;
+  background:
+    var(--tex-brush-s),
+    linear-gradient(180deg, #eceded 0%, #a2a7ad 10%, #c9ccd0 46%, #70757b 88%, #3f4347 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 1px 0 0 rgba(255, 255, 255, 0.4),
+    inset -1px 0 0 rgba(0, 0, 0, 0.35),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.55),
+    /* 상자 두께 */
+    0 3px 0 #2c2f33,
+    0 4px 0 #111214,
+    0 10px 14px rgba(0, 0, 0, 0.55),
+    /* 번지는 불빛 */
+    0 0 26px 5px rgba(255, 214, 160, 0.3),
+    0 0 90px 26px rgba(255, 190, 120, 0.14);
+  animation: hum 7s steps(1) infinite;
+}
+.signFace {
+  inset: 7px;
+  display: grid;
+  place-items: center;
+  border-radius: 1px;
+  color: #5e2018;
+  background:
+    /* 안쪽 형광등 두 개의 밝은 얼룩 */
+    radial-gradient(34% 110% at 26% 50%, #fffaf0 0%, transparent 100%),
+    radial-gradient(34% 110% at 74% 50%, #fffaf0 0%, transparent 100%),
+    linear-gradient(180deg, #dcc898 0%, #f1e6cb 22%, #f4ead2 50%, #efe2c3 78%, #d3bd88 100%);
+  box-shadow:
+    inset 0 0 12px rgba(120, 80, 30, 0.6),
+    inset 0 2px 3px rgba(60, 30, 0, 0.7),
+    inset 0 0 0 1px rgba(40, 20, 0, 0.7);
+  overflow: hidden;
+}
+/* 아크릴 표면의 비스듬한 반사 */
+.signFace::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(108deg, transparent 0 22%, rgba(255, 255, 255, 0.34) 26%, rgba(255, 255, 255, 0.08) 34%, transparent 35%, transparent 72%, rgba(255, 255, 255, 0.16) 75%, transparent 80%);
+  pointer-events: none;
+}
+.signFace strong {
+  position: static;
+  font-size: 27px;
+  line-height: 1;
+  letter-spacing: 3.2px;
+  margin-right: -3.2px;
+  /* 아크릴 뒤에 붙인 시트지 글자: 가장자리로 빛이 샌다 */
+  text-shadow:
+    0 0 2px rgba(255, 246, 225, 0.95),
+    0 0 7px rgba(255, 236, 200, 0.6),
+    0 1px 0 rgba(40, 10, 0, 0.25);
+}
+@keyframes hum {
+  0%,
+  100% {
+    filter: none;
+  }
+  46% {
+    filter: brightness(0.86);
+  }
+  47% {
+    filter: none;
+  }
+  49% {
+    filter: brightness(0.92);
+  }
+  50% {
+    filter: none;
+  }
+}
+.post {
+  top: 106px;
+  width: 7px;
+  height: 20px;
+  box-shadow: 2px 0 3px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(90deg, #44484d, #c2c5c9 40%, #7d8288 70%, #33363a);
+}
+
+/* ── 지붕 띠와 매달린 전구: 하나 걸러 하나씩 번갈아 반짝인다 */
+.fascia {
+  left: 8px;
+  top: 124px;
+  width: 344px;
+  height: 11px;
+  border-radius: 2px;
+  background:
+    var(--tex-brush-sd),
+    linear-gradient(180deg, #3f3630 0%, #241e1a 35%, #15110f 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 220, 170, 0.2),
+    0 3px 5px rgba(0, 0, 0, 0.6);
+}
+.bulbs {
+  left: 8px;
+  top: 133px;
+  width: 344px;
+  height: 20px;
+  display: flex;
+  justify-content: space-around;
+  z-index: 3;
+}
+/* 소켓 */
+.bulbs i {
+  position: relative;
+  width: 6px;
+  height: 5px;
+  border-radius: 0 0 1px 1px;
+  background: linear-gradient(90deg, #4d3c14, #c9a85a 45%, #6b5420);
+}
+/* 유리알 */
+.bulbs i::after {
+  content: "";
+  position: absolute;
+  left: -3.5px;
+  top: 3.5px;
+  width: 13px;
+  height: 14px;
+  border-radius: 50% 50% 50% 50% / 42% 42% 58% 58%;
+  background: radial-gradient(circle at 50% 46%, #fffdf4 0%, #fff1c9 26%, #ffcf78 58%, #e5a03c 100%);
+  box-shadow:
+    0 0 7px 3px rgba(255, 208, 130, 0.8),
+    0 0 20px 8px rgba(255, 176, 80, 0.32);
+  animation: twinkle 1.5s ease-in-out infinite;
+}
+.bulbs i[data-odd="true"]::after {
+  animation-delay: -0.75s;
+}
+/* 꺼진 전구는 유리알만 어렴풋이 */
+@keyframes twinkle {
+  0%,
+  38% {
+    filter: none;
+    box-shadow:
+      0 0 7px 3px rgba(255, 208, 130, 0.8),
+      0 0 20px 8px rgba(255, 176, 80, 0.32);
+  }
+  50%,
+  88% {
+    filter: brightness(0.34) saturate(0.5);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
+  }
+  100% {
+    filter: none;
+    box-shadow:
+      0 0 7px 3px rgba(255, 208, 130, 0.8),
+      0 0 20px 8px rgba(255, 176, 80, 0.32);
+  }
+}
+
+/* ── 본체: 니스 칠한 세로 원목 */
+.body {
+  left: 16px;
+  top: 147px;
+  width: 328px;
+  height: 458px;
+  overflow: hidden;
+  background: #7a4a25;
+  box-shadow: 0 0 0 1px rgba(20, 8, 0, 0.8);
+}
+.boards {
+  inset: 0;
+  background:
+    /* 판자 사이 홈: 어두운 골 + 옆의 밝은 모서리 */
+    repeating-linear-gradient(90deg, rgba(30, 10, 0, 0.75) 0 1.1px, rgba(255, 200, 150, 0.2) 1.1px 2.2px, transparent 2.2px 17.4px, rgba(60, 25, 5, 0.25) 17.4px 18.2px),
+    var(--tex-wood-d),
+    var(--tex-wood-l),
+    var(--tex-blotch),
+    /* 판자마다 조금씩 다른 색 */
+    repeating-linear-gradient(90deg, #855228 0 18.2px, #784820 18.2px 36.4px, #8b582d 36.4px 54.6px, #7c4b22 54.6px 72.8px, #835027 72.8px 91px),
+    #7f4d25;
+  background-size:
+    auto,
+    150px 300px,
+    130px 260px,
+    300px 300px,
+    auto;
+}
+/* 간판과 전구 불빛이 본체 윗부분에 번진다 */
+.spill {
+  inset: 0 0 auto 0;
+  height: 120px;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 100% at 50% 0%, rgba(255, 206, 140, 0.26) 0%, rgba(255, 190, 120, 0.08) 45%, transparent 75%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0, transparent 7px);
+  mix-blend-mode: screen;
+}
+/* 플래시: 가운데가 밝고 가장자리로 떨어진다. 니스 반사 한 줄 */
+.flashLight {
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(97deg, transparent 8%, rgba(255, 240, 215, 0.13) 13%, transparent 19%, transparent 86%, rgba(255, 240, 215, 0.08) 90%, transparent 94%),
+    radial-gradient(75% 60% at 50% 42%, rgba(255, 236, 214, 0.1) 0%, transparent 55%, rgba(10, 4, 0, 0.5) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, transparent 9%, transparent 80%, rgba(0, 0, 0, 0.35) 100%);
+}
+
+/* ── 크롬 배출구 */
+.slot {
+  left: 40px;
+  top: 188px;
+  width: 56px;
+  height: 164px;
+  border-radius: 5px;
+  background: linear-gradient(100deg, #fdfdfd 0%, #c3c8cd 10%, #5f656c 20%, #eef0f2 34%, #aab0b6 52%, #f7f8f9 66%, #6b7178 82%, #d7dadd 100%);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -2px 1px rgba(0, 0, 0, 0.5),
+    0 3px 5px rgba(0, 0, 0, 0.6);
+}
+.recess {
+  inset: 11px 11px 12px;
+  overflow: hidden;
+  background: linear-gradient(90deg, #050505 0%, #2c2d2f 22%, #0d0d0e 48%, #37383a 84%, #080808 100%);
+  box-shadow:
+    inset 0 8px 8px #000,
+    0 0 0 1px rgba(0, 0, 0, 0.7),
+    0 1px 0 1px rgba(255, 255, 255, 0.6);
+}
+.handle {
+  left: 50%;
+  top: 22%;
+  bottom: 0;
+  width: 4px;
+  margin-left: -2px;
+  z-index: 2;
+  background: linear-gradient(90deg, #595e64, #fff 40%, #c9cdd2 60%, #474b50);
+  box-shadow: 2px 0 2px rgba(0, 0, 0, 0.6);
+}
+.handle::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -15px;
+  width: 34px;
+  height: 3.8px;
+  border-radius: 1px;
+  background: linear-gradient(180deg, #fff, #c9cdd2 50%, #51565b);
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.7);
+}
+
+.recess img {
+  left: 6px;
+  bottom: 2px;
+  width: calc(100% - 12px);
+  max-height: calc(100% - 8px);
+  object-fit: cover;
+  object-position: bottom;
+  box-shadow: 0 0 3px #000;
+}
+
+/* ── 문 */
+.door {
+  left: 136px;
+  top: 10px;
+  width: 140px;
+  height: 440px;
+  /* 크롬 문틀 */
+  border: 5px solid;
+  border-image: linear-gradient(100deg, #5a5f65 0%, #f6f7f8 22%, #a4a9af 45%, #eceef0 63%, #555a60 82%, #c2c6cb 100%) 1;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.7),
+    0 0 6px rgba(0, 0, 0, 0.5);
+}
+.room {
+  inset: 0;
+  overflow: hidden;
+  background: #0d0c0b;
+}
+.wallUp {
+  inset: 0 0 auto;
+  height: 236px;
+  background:
+    var(--tex-soft-d),
+    radial-gradient(90% 70% at 55% 30%, #e4dbc6 0%, #c5b99d 60%, #968b72 100%);
+  background-size:
+    90px 90px,
+    auto;
+}
+.wainscot {
+  left: 0;
+  right: 0;
+  top: 228px;
+  height: 160px;
+  background:
+    var(--tex-soft-d),
+    linear-gradient(180deg, #3a5548 0, #3a5548 2px, #14261e 4px, #283f35 9px, #20352c 60%, #182a22 100%);
+  background-size:
+    90px 90px,
+    auto;
+  box-shadow:
+    0 -1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -10px 0 #142a20,
+    inset 0 -11px 0 rgba(255, 255, 255, 0.12);
+}
+/* 원근이 들어간 기하학 타일 바닥 */
+.floorBox {
+  left: 0;
+  right: 0;
+  top: 388px;
+  height: 44px;
+  perspective: 120px;
+  perspective-origin: 50% 0%;
+  overflow: hidden;
+}
+.floor {
+  left: -60%;
+  right: -60%;
+  top: 0;
+  height: 190px;
+  transform-origin: 50% 0;
+  transform: rotateX(68deg);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 35%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><rect width='32' height='32' fill='%23e7dfcd'/><path d='M0,0 H16 L0,16 Z M32,0 V16 L16,0 Z M0,32 V16 L16,32 Z M32,32 H16 L32,16 Z M16,16 L8,8 H24 Z M16,16 L8,24 H24 Z' fill='%231c1a17'/></svg>");
+  background-size:
+    auto,
+    26px 26px;
+}
+.stool {
+  left: 68px;
+  top: 300px;
+  width: 58px;
+  height: 126px;
+}
+.seat {
+  left: 0;
+  top: 0;
+  width: 58px;
+  height: 15px;
+  border-radius: 50% / 60% 60% 40% 40%;
+  background: linear-gradient(180deg, #fbf5e4 0%, #e6dcc2 45%, #a89d83 100%);
+  box-shadow:
+    inset 0 -3px 3px rgba(0, 0, 0, 0.25),
+    0 3px 5px rgba(0, 0, 0, 0.5);
+}
+.leg {
+  left: 24px;
+  top: 13px;
+  width: 10px;
+  height: 104px;
+  background: linear-gradient(90deg, #4c5156, #f4f5f6 35%, #b9bdc2 55%, #3f4347);
+}
+.foot {
+  left: 5px;
+  top: 108px;
+  width: 48px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(60% 60% at 45% 35%, #eceef0, #878c92 60%, #3b3f43);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.7);
+}
+/* 부스 안은 위에서 불이 내려오고, 문틀 안쪽은 어둡다 */
+.roomShade {
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0, transparent 14%, transparent 90%, rgba(0, 0, 0, 0.4) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0, transparent 8%);
+}
+
+/* ── 벨벳 커튼 */
+.curtain {
+  left: 0;
+  top: 2px;
+  width: 130px;
+  height: 286px;
+  transform-origin: 100% 0;
+  transition: transform 0.6s var(--ease-in-out);
+  will-change: transform;
+  filter: drop-shadow(0 10px 8px rgba(0, 0, 0, 0.55));
+}
+.cloth {
+  inset: 0;
+  transform-origin: 50% 0;
+  animation: sway 5.5s ease-in-out infinite;
+  background:
+    /* 봉 아래 모인 주름의 그늘, 아랫단 그늘 */
+    linear-gradient(180deg, rgba(0, 0, 0, 0.7) 0, rgba(0, 0, 0, 0.15) 5%, transparent 14%, transparent 82%, rgba(0, 0, 0, 0.4) 100%),
+    /* 플래시가 닿은 가운데 */
+    radial-gradient(70% 55% at 50% 40%, rgba(255, 200, 185, 0.13), transparent 70%),
+    var(--tex-speck-d),
+    /* 굵기가 다른 두 겹의 주름 */
+    repeating-linear-gradient(90deg, transparent 0, rgba(0, 0, 0, 0.3) 9px, transparent 19px, rgba(255, 150, 150, 0.1) 26px, transparent 31px),
+    repeating-linear-gradient(90deg, #190507 0, #3f1018 1.4px, #6b1f2b 3.6px, #8a3442 5px, #6f2230 6.4px, #49141e 8.4px, #22070b 10.2px, #190507 10.84px),
+    #5f1a25;
+  background-size:
+    auto,
+    auto,
+    60px 60px,
+    auto,
+    auto;
+}
+@keyframes sway {
+  0%,
+  100% {
+    transform: skewX(-0.7deg);
+  }
+  50% {
+    transform: skewX(0.9deg);
+  }
+}
+.root[data-open="true"] .curtain {
+  transform: scaleX(0.2);
+}
+.root[data-open="true"] .cloth {
+  animation: none;
+}
+.rail {
+  left: -1px;
+  right: -1px;
+  top: 0;
+  height: 5px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #fff, #b9bdc2 45%, #474b50);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.7);
+}
+
+/* 들어가기: 커튼에 핀으로 꽂아 둔 종이 */
+.card {
+  left: 35px;
+  top: 112px;
+  width: 60px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  background:
+    var(--tex-soft-d),
+    linear-gradient(172deg, #f6efdc, #e1d6b9);
+  background-size:
+    70px 70px,
+    auto;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.6);
+  color: #1c1814;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  transform-origin: 50% 0;
+  animation: bob 3.2s ease-in-out infinite;
+  transition: opacity 0.18s;
+}
+.card::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  margin-left: -3.5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, #c9a03c 45%, #6b4f12);
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.6);
+}
+@keyframes bob {
+  0%,
+  100% {
+    transform: rotate(-1.8deg);
+  }
+  50% {
+    transform: rotate(1.4deg);
+  }
+}
+.root[data-open="true"] .card {
+  opacity: 0;
+}
+
+/* ── 오른쪽 기둥: 세로 간판 */
+.vsign {
+  left: 284px;
+  top: 56px;
+  width: 37px;
+  height: 300px;
+  display: grid;
+  justify-items: center;
+  align-content: space-evenly;
+  padding: 4px 0;
+  background:
+    var(--tex-soft-d),
+    linear-gradient(180deg, #ebe6da 0%, #ddd6c6 70%, #c5bda9 100%);
+  background-size:
+    100px 100px,
+    auto;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.5),
+    inset 0 0 8px rgba(120, 100, 60, 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.55);
+  color: #151414;
+}
+.vsign span {
+  position: static;
+  font-size: 31px;
+  line-height: 1;
+}
+
+/* ── 황동 밑판 */
+.kick {
+  top: 428px;
+  height: 30px;
+  background:
+    var(--tex-brush-sd),
+    var(--tex-brush-s),
+    linear-gradient(180deg, #d9c68c 0%, #9c8340 12%, #766128 55%, #a08a4a 80%, #564518 100%);
+  background-size:
+    130px 40px,
+    150px 50px,
+    auto;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 250, 220, 0.8),
+    0 -1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* ── 들어가기: 문 안으로 줌 */
+.root[data-out="true"] {
+  pointer-events: none;
+  animation: fadeOut 0.45s 0.25s ease-in both;
+}
+.root[data-out="true"] .fit {
+  animation: dive 0.7s cubic-bezier(0.6, 0, 0.9, 0.4) both;
+}
+@keyframes dive {
+  to {
+    transform: scale(4.6);
+  }
+}
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* ── 터치 영역 */
+.hitDoor,
+.hitSlot {
+  border-radius: 4px;
+}
+.hitDoor {
+  left: 152px;
+  top: 157px;
+  width: 140px;
+  height: 440px;
+}
+.hitSlot {
+  left: 42px;
+  top: 322px;
+  width: 84px;
+  height: 190px;
+}
+.hitDoor:disabled,
+.hitSlot:disabled {
+  cursor: default;
+}

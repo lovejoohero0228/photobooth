@@ -1,0 +1,37 @@
+.window {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: #111;
+  border-radius: 6px;
+}
+
+.video {
+  position: absolute;
+  max-width: none;
+  /* 미리보기만 거울 모드 */
+  transform: scaleX(-1);
+  filter: grayscale(1) contrast(1.28) brightness(1.03);
+  transition: left 0.15s ease, top 0.15s ease, width 0.15s ease, height 0.15s ease;
+}
+
+.still {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.guide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: rgba(237, 228, 208, 0.6);
+  stroke-width: 2.5;
+  stroke-dasharray: 9 7;
+  pointer-events: none;
+}

@@ -1,0 +1,117 @@
+.booth {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.signBig {
+  font-family: var(--font-sign), sans-serif;
+  font-weight: 900;
+  font-size: 66px;
+  letter-spacing: 6px;
+  fill: #7a1e2c;
+}
+.signSmall {
+  font-family: var(--font-plate), sans-serif;
+  font-size: 9.5px;
+  letter-spacing: 1.2px;
+  fill: #7a1e2c;
+}
+.signText {
+  font-family: var(--font-sign), sans-serif;
+  font-weight: 900;
+}
+.plateText {
+  font-family: var(--font-plate), sans-serif;
+  letter-spacing: 0.6px;
+}
+
+/* 마키 전구: 3그룹이 순서대로 깜빡이는 체이스 */
+.bulb .bulbGlow {
+  animation: chase 1.05s steps(1, end) infinite;
+  animation-delay: inherit;
+}
+.bulb {
+  animation-delay: inherit;
+}
+@keyframes chase {
+  0% {
+    opacity: 1;
+  }
+  33% {
+    opacity: 0.15;
+  }
+  100% {
+    opacity: 0.15;
+  }
+}
+
+/* 커튼: 왼쪽에 모이며 걷힘 */
+.curtain {
+  transform-box: fill-box;
+  transform-origin: left top;
+  transition: transform 0.9s cubic-bezier(0.6, 0, 0.25, 1);
+}
+.sway {
+  transform-box: fill-box;
+  transform-origin: top center;
+  animation: sway 5s ease-in-out infinite;
+}
+@keyframes sway {
+  0%,
+  100% {
+    transform: skewX(0deg);
+  }
+  50% {
+    transform: skewX(0.8deg);
+  }
+}
+
+/* 플래시 새어 나옴 */
+.flash {
+  opacity: 0;
+  pointer-events: none;
+}
+.booth[data-state="flash"] .flash {
+  animation: flash 0.5s ease-out;
+}
+@keyframes flash {
+  0% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* 동전 떨어짐 */
+.coin {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.booth[data-state="coin"] .coin {
+  animation: coin 0.7s cubic-bezier(0.5, 0, 0.9, 0.5) forwards;
+}
+@keyframes coin {
+  0% {
+    opacity: 1;
+    transform: translateY(-60px) scaleX(1);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(24px) scaleX(0.35);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(34px) scaleX(0.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sway,
+  .bulb .bulbGlow {
+    animation: none;
+  }
+}

@@ -1,0 +1,113 @@
+"use client";
+
+// 부스 외관 — 밤에 플래시로 찍은 필름 사진처럼. 간판, 커튼, 의자, 배출구, 세로 간판만 남긴다.
+// 360×640 기준 좌표로 짜고 화면에 맞춰 통째로 확대한다.
+import { useEffect, useRef, useState } from "react";
+import css from "./Exterior.module.css";
+
+interface Props {
+  /** 커튼이 걷힌 상태 */
+  open: boolean;
+  /** 문 안으로 빨려 들어가며 사라지는 중 */
+  out: boolean;
+  /** 가장 최근 사진(배출구에 꽂혀 보인다) */
+  latest?: string;
+  total: number;
+  onEnter: () => void;
+  onAlbum: () => void;
+}
+
+const BULBS = 11;
+const PLEATS = 12;
+// 커튼 밑단: 주름마다 살짝 들쭉날쭉
+const HEM = `polygon(0 0, 100% 0, ${Array.from({ length: PLEATS * 2 + 1 }, (_, i) => `${100 - (i * 100) / (PLEATS * 2)}% ${i % 2 ? 98.4 + (i % 3) * 0.3 : 100}%`).join(", ")})`;
+
+export default function Exterior({ open, out, latest, total, onEnter, onAlbum }: Props) {
+  const fit = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0);
+
+  useEffect(() => {
+    const el = fit.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setScale(el.clientWidth / 360));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div className={css.root} data-open={open} data-out={out} data-ready={scale > 0}>
+      <div className={css.fit} ref={fit}>
+        <div className={css.art} style={{ transform: `scale(${scale || 1})` }}>
+          <div className={css.ground} />
+          <div className={css.cast} />
+
+          {/* 조명 간판 */}
+          <div className={css.sign}>
+            <div className={css.signFace}>
+              <strong className="f-sign">PHOTOBOOTH</strong>
+            </div>
+          </div>
+          <i className={css.post} style={{ left: 84 }} />
+          <i className={css.post} style={{ left: 269 }} />
+
+          {/* 지붕 띠에 매달린 전구 */}
+          <div className={css.fascia} />
+          <div className={css.bulbs}>
+            {Array.from({ length: BULBS }, (_, i) => (
+              <i key={i} data-odd={i % 2 === 1} />
+            ))}
+          </div>
+
+          {/* 본체 */}
+          <div className={css.body}>
+            <div className={css.boards} />
+            <div className={css.spill} />
+
+            <div className={css.slot}>
+              <div className={css.recess}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {latest && <img src={latest} alt="" />}
+                <i className={css.handle} />
+              </div>
+            </div>
+
+            {/* 문 */}
+            <div className={css.door}>
+              <div className={css.room}>
+                <div className={css.wallUp} />
+                <div className={css.wainscot} />
+                <div className={css.floorBox}>
+                  <div className={css.floor} />
+                </div>
+                <div className={css.stool}>
+                  <i className={css.seat} />
+                  <i className={css.leg} />
+                  <i className={css.foot} />
+                </div>
+                <div className={css.roomShade} />
+              </div>
+              <div className={css.curtain}>
+                <div className={css.cloth} style={{ clipPath: HEM }} />
+              </div>
+              <div className={css.rail} />
+              <div className={css.card}>enter</div>
+            </div>
+
+            <div className={`${css.vsign} f-sign`}>
+              {"PHOTOS".split("").map((ch, i) => (
+                <span key={i}>{ch}</span>
+              ))}
+            </div>
+
+            <div className={css.kick} style={{ left: 0, width: 136 }} />
+            <div className={css.kick} style={{ left: 276, width: 52 }} />
+            <div className={css.flashLight} />
+          </div>
+
+          <button className={css.hitDoor} onClick={onEnter} disabled={open} aria-label="커튼을 열고 부스 안으로 들어가기" />
+          <button className={css.hitSlot} onClick={onAlbum} disabled={open || total === 0} aria-label={`찍은 사진 ${total}장 보기`} />
+        </div>
+      </div>
+    </div>
+  );
+}

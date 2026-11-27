@@ -31,6 +31,9 @@ export default function Delivery({ url, blob, w, h, leaving, onAgain }: Props) {
   const [scene, setScene] = useState<{ key: Backdrop; url: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const strip = useRef<HTMLImageElement>(null);
+  const stage = useRef<HTMLDivElement>(null);
+  /** 저장 이미지(1080 폭)에서 사진이 차지하는 폭의 비율 */
+  const stripFrac = Math.min((1500 * w) / h, 800) / 1080;
   const scenes = useRef(new Map<Backdrop, string>());
   const stories = useRef(new Map<Backdrop, Blob>());
 
@@ -38,15 +41,17 @@ export default function Delivery({ url, blob, w, h, leaving, onAgain }: Props) {
   const pick = useCallback(() => {
     const el = strip.current;
     if (!el) return;
+    const box = stage.current;
+    if (!box) return;
     const r = el.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const s = Math.min(Math.min(vw * 0.78, 400) / r.width, (vh - 270) / r.height);
-    const dx = vw / 2 - (r.left + r.width / 2);
-    const dy = (vh - 215) / 2 + 6 - (r.top + r.height / 2);
+    const sr = box.getBoundingClientRect();
+    // 저장되는 9:16 이미지(composeStory)와 같은 자리 · 같은 비율로 놓는다
+    const s = (sr.width * stripFrac) / r.width;
+    const dx = sr.left + sr.width / 2 - (r.left + r.width / 2);
+    const dy = sr.top + sr.height / 2 - (r.top + r.height / 2);
     setHeld(`translate(${dx}px, ${dy}px) scale(${s}) rotate(-2deg)`);
     setPhase("held");
-  }, []);
+  }, [stripFrac]);
 
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
@@ -114,8 +119,10 @@ export default function Delivery({ url, blob, w, h, leaving, onAgain }: Props) {
   return (
     <div className={css.root} data-phase={phase} data-leaving={leaving}>
       <div className={css.wood} />
-      {/* 고른 배경이 화면 전체에 깔린다 */}
-      {phase === "held" && scene && <div key={scene.key} className={css.scene} data-on={backdrop === scene.key} style={{ backgroundImage: `url(${scene.url})` }} />}
+      {/* 저장되는 9:16 화면을 그대로 보여 주는 고정 틀 */}
+      <div ref={stage} className={css.stage} aria-hidden="true">
+        {scene && <div key={scene.key} className={css.scene} data-on={backdrop === scene.key} style={{ backgroundImage: `url(${scene.url})` }} />}
+      </div>
 
       <div className={css.col}>
         <div className={css.plates}>
@@ -167,7 +174,7 @@ export default function Delivery({ url, blob, w, h, leaving, onAgain }: Props) {
             </button>
             {BACKDROPS.map((b) => (
               <button key={b.key} role="radio" aria-checked={backdrop === b.key} data-on={backdrop === b.key} onClick={() => void choose(b.key)}>
-                <i data-kind={b.key} />
+                <i data-kind="photo" style={{ backgroundImage: `url(${b.src})` }} />
                 {b.name}
               </button>
             ))}

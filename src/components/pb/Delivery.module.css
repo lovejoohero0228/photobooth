@@ -187,7 +187,28 @@
     opacity 0.25s;
   cursor: default;
 }
-/* 고른 배경: 사진은 그대로 두고 뒤에만 깔린다 */
+/* 저장되는 9:16 이미지의 고정 미리보기 틀. 화면 크기와 상관없이 같은 모양 */
+.stage {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  top: calc(12px + var(--safe-t));
+  height: min(calc(100dvh - 250px - var(--safe-t) - var(--safe-b)), calc((100vw - 24px) * 16 / 9));
+  aspect-ratio: 9 / 16;
+  transform: translateX(-50%);
+  background: #100e0c;
+  box-shadow:
+    0 0 0 1px rgba(237, 228, 208, 0.16),
+    0 14px 40px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+.root[data-phase="held"] .stage {
+  opacity: 1;
+}
+/* 고른 배경: 틀 안을 꽉 채운다(저장 이미지와 같은 cover) */
 .scene {
   position: absolute;
   inset: 0;
@@ -196,7 +217,6 @@
   opacity: 0;
   transition: opacity 0.4s ease-out;
   animation: sceneIn 0.4s ease-out both;
-  z-index: 3;
 }
 .scene[data-on="true"] {
   opacity: 1;
@@ -281,9 +301,27 @@
 /* 배경 고르기: 작은 견본과 이름 */
 .swatches {
   display: flex;
-  gap: 18px;
+  gap: 14px;
+  max-width: 100%;
+  padding: 4px 16px 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.swatches::-webkit-scrollbar {
+  display: none;
+}
+/* 다 들어가면 가운데, 넘치면 처음부터 스크롤 */
+.swatches > :first-child {
+  margin-left: auto;
+}
+.swatches > :last-child {
+  margin-right: auto;
 }
 .swatches button {
+  flex: none;
+  min-width: 46px;
+  white-space: nowrap;
   display: grid;
   justify-items: center;
   gap: 7px;
@@ -334,24 +372,9 @@
 .swatches i[data-kind="plain"] {
   background: #100e0c;
 }
-.swatches i[data-kind="wood"] {
-  background: var(--wood-boards);
-  background-size: var(--wood-boards-size);
-}
-.swatches i[data-kind="dots"] {
-  background:
-    radial-gradient(circle, #e9e1cf 0 3.6px, transparent 4.2px) 0 0 / 14px 14px,
-    radial-gradient(circle, #e9e1cf 0 3.6px, transparent 4.2px) 7px 7px / 14px 14px,
-    #0d0c0b;
-}
-.swatches i[data-kind="xmas"] {
-  background:
-    radial-gradient(circle at 18% 22%, #ffd27a 0 2px, transparent 3px),
-    radial-gradient(circle at 50% 14%, #e5533d 0 2px, transparent 3px),
-    radial-gradient(circle at 82% 22%, #ffd27a 0 2px, transparent 3px),
-    radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.7) 0 1px, transparent 2px),
-    radial-gradient(circle at 76% 82%, rgba(255, 255, 255, 0.7) 0 1px, transparent 2px),
-    linear-gradient(#16382a, #0a1f17);
+.swatches i[data-kind="photo"] {
+  background-size: cover;
+  background-position: center;
 }
 
 /* 저장 · 공유: 얇은 금색 선 */

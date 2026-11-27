@@ -170,144 +170,53 @@ export async function composeStrip(cuts: HTMLCanvasElement[], frame: Frame, date
 
 // ───────────────────────────── 스토리용 배경 (9:16)
 
-export type Backdrop = "wood" | "dots" | "xmas";
-export const BACKDROPS: { key: Backdrop; name: string }[] = [
-  { key: "wood", name: "Wood" },
-  { key: "dots", name: "Dots" },
-  { key: "xmas", name: "Xmas" },
+/** public/bg 의 사진 배경 */
+export interface BackdropDef {
+  key: string;
+  name: string;
+  src: string;
+}
+const bg = (key: string, name: string): BackdropDef => ({ key, name, src: `/bg/${key}.jpeg` });
+export const BACKDROPS: BackdropDef[] = [
+  bg("green-cross", "Cross"),
+  bg("navy-dots", "Navy"),
+  bg("navy-lace", "Lace"),
+  bg("lace-black-dots", "Lace Dots"),
+  bg("red-pink-stripes", "Candy"),
+  bg("blue-swirl", "Swirl"),
+  bg("black-cream-dots", "Polka"),
+  bg("pink-floral", "Floral"),
 ];
+export type Backdrop = string;
 
 const SW = 1080;
 const SH = 1920;
 
-function rng(seed: number) {
-  let s = seed | 1;
-  return () => {
-    s ^= s << 13;
-    s ^= s >>> 17;
-    s ^= s << 5;
-    return (s >>> 0) / 4294967296;
-  };
+const bgImages = new Map<string, Promise<HTMLImageElement>>();
+function loadBackdrop(key: string): Promise<HTMLImageElement> {
+  let p = bgImages.get(key);
+  if (!p) {
+    const def = BACKDROPS.find((b) => b.key === key);
+    p = new Promise<HTMLImageElement>((res, rej) => {
+      const img = new Image();
+      img.onload = () => res(img);
+      img.onerror = () => rej(new Error("배경을 열 수 없어요"));
+      img.src = def?.src ?? "";
+    });
+    p.catch(() => bgImages.delete(key));
+    bgImages.set(key, p);
+  }
+  return p;
 }
 
-function paintWood(ctx: CanvasRenderingContext2D) {
-  const r = rng(77);
-  // 첫 화면 부스 본체와 같은 판자 색 · 홈 (화면 비율에 맞춰 키운다)
-  const PLANK = 49;
-  const colors = ["#7e532f", "#724926", "#845934", "#764c28", "#7d512d"];
-  ctx.fillStyle = "#794e2b";
-  ctx.fillRect(0, 0, SW, SH);
-  for (let i = 0; i * PLANK < SW; i++) {
-    ctx.fillStyle = colors[i % colors.length];
-    ctx.fillRect(i * PLANK, 0, PLANK, SH);
-  }
-  // 세로 결: 굵기와 진하기가 제각각인 선 수천 개
-  for (let i = 0; i < 2600; i++) {
-    const x = r() * SW;
-    const w = 0.6 + r() * r() * 7;
-    const dark = r() < 0.62;
-    ctx.fillStyle = dark ? `rgba(36,14,3,${0.05 + r() * 0.22})` : `rgba(248,200,157,${0.03 + r() * 0.12})`;
-    const y0 = r() < 0.35 ? r() * SH : 0;
-    ctx.fillRect(x, y0, w, r() < 0.35 ? r() * SH * 0.7 : SH);
-  }
-  // 판자 사이 홈: 어두운 골 + 옆의 밝은 모서리
-  for (let i = 0; i * PLANK < SW; i++) {
-    ctx.fillStyle = "rgba(28,11,2,0.75)";
-    ctx.fillRect(i * PLANK, 0, 3, SH);
-    ctx.fillStyle = "rgba(248,200,157,0.2)";
-    ctx.fillRect(i * PLANK + 3, 0, 3, SH);
-  }
-  // 니스 반사
-  const gl = ctx.createLinearGradient(0, 0, SW, SH * 0.25);
-  gl.addColorStop(0.1, "rgba(255,244,225,0)");
-  gl.addColorStop(0.22, "rgba(255,244,225,0.16)");
-  gl.addColorStop(0.34, "rgba(255,244,225,0)");
-  ctx.fillStyle = gl;
-  ctx.fillRect(0, 0, SW, SH);
-}
-
-function paintDots(ctx: CanvasRenderingContext2D) {
-  ctx.fillStyle = "#0d0c0b";
-  ctx.fillRect(0, 0, SW, SH);
-  ctx.fillStyle = "#e9e1cf";
-  const step = 270;
-  const rad = 78;
-  for (let row = -1; row * (step / 2) < SH + step; row++) {
-    for (let col = -1; col * step < SW + step; col++) {
-      ctx.beginPath();
-      ctx.arc(col * step + (row % 2 ? step / 2 : 0), row * (step / 2), rad, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-}
-
-function paintXmas(ctx: CanvasRenderingContext2D) {
-  const r = rng(1225);
-  const bg = ctx.createLinearGradient(0, 0, 0, SH);
-  bg.addColorStop(0, "#16382a");
-  bg.addColorStop(1, "#0a1f17");
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, SW, SH);
-  // 눈: 초점이 나간 큰 눈송이와 또렷한 작은 눈송이
-  for (let i = 0; i < 150; i++) {
-    const big = r() < 0.2;
-    const x = r() * SW;
-    const y = r() * SH;
-    const rad = big ? 14 + r() * 22 : 2 + r() * 5;
-    const g = ctx.createRadialGradient(x, y, 0, x, y, rad);
-    g.addColorStop(0, `rgba(255,250,240,${big ? 0.22 : 0.85})`);
-    g.addColorStop(1, "rgba(255,250,240,0)");
-    ctx.fillStyle = g;
-    ctx.fillRect(x - rad, y - rad, rad * 2, rad * 2);
-  }
-  // 위아래로 늘어진 꼬마전구 줄
-  const colors = ["#ffd27a", "#e5533d", "#ffd27a", "#7fd1a0"];
-  for (const [y0, sag, flip] of [
-    [150, 120, 1],
-    [SH - 190, 110, -1],
-  ] as const) {
-    const at = (t: number) => ({ x: t * SW, y: y0 + flip * Math.sin(t * Math.PI * 2.5) * sag * 0.5 + flip * sag * 0.5 });
-    ctx.strokeStyle = "rgba(0,0,0,0.75)";
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    for (let t = 0; t <= 1.001; t += 0.01) {
-      const p = at(t);
-      if (t === 0) ctx.moveTo(p.x, p.y);
-      else ctx.lineTo(p.x, p.y);
-    }
-    ctx.stroke();
-    for (let i = 0; i < 12; i++) {
-      const p = at((i + 0.5) / 12);
-      const col = colors[i % colors.length];
-      const glow = ctx.createRadialGradient(p.x, p.y + 20, 0, p.x, p.y + 20, 90);
-      glow.addColorStop(0, col + "aa");
-      glow.addColorStop(1, col + "00");
-      ctx.fillStyle = glow;
-      ctx.fillRect(p.x - 90, p.y - 70, 180, 180);
-      ctx.fillStyle = "#1c1a17";
-      ctx.fillRect(p.x - 8, p.y - 2, 16, 14);
-      ctx.fillStyle = col;
-      ctx.beginPath();
-      ctx.ellipse(p.x, p.y + 28, 15, 20, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "rgba(255,255,255,0.75)";
-      ctx.beginPath();
-      ctx.ellipse(p.x - 5, p.y + 21, 4, 7, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-}
-
-function paintBackdrop(ctx: CanvasRenderingContext2D, backdrop: Backdrop) {
-  if (backdrop === "wood") paintWood(ctx);
-  else if (backdrop === "dots") paintDots(ctx);
-  else paintXmas(ctx);
-  // 가장자리 어둡게
-  const v = ctx.createRadialGradient(SW / 2, SH * 0.48, SH * 0.3, SW / 2, SH / 2, SH * 0.75);
-  v.addColorStop(0, "rgba(0,0,0,0)");
-  v.addColorStop(1, "rgba(0,0,0,0.5)");
-  ctx.fillStyle = v;
-  ctx.fillRect(0, 0, SW, SH);
+/** 9:16 캔버스를 꽉 채운다(cover) */
+async function paintBackdrop(ctx: CanvasRenderingContext2D, backdrop: Backdrop) {
+  const img = await loadBackdrop(backdrop);
+  const k = Math.max(SW / img.naturalWidth, SH / img.naturalHeight);
+  const w = img.naturalWidth * k;
+  const h = img.naturalHeight * k;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(img, (SW - w) / 2, (SH - h) / 2, w, h);
 }
 
 function grainOver(ctx: CanvasRenderingContext2D) {
@@ -327,18 +236,17 @@ function storyCanvas() {
 }
 
 /** 배경만 (화면에서 사진 뒤에 깔 때 쓴다) */
-export function composeBackdrop(backdrop: Backdrop): Promise<Blob> {
+export async function composeBackdrop(backdrop: Backdrop): Promise<Blob> {
   const { c, ctx } = storyCanvas();
-  paintBackdrop(ctx, backdrop);
-  grainOver(ctx);
-  return toBlob(c, 0.85);
+  await paintBackdrop(ctx, backdrop);
+  return toBlob(c, 0.88);
 }
 
 /** 사진을 가운데 살짝 비스듬히 올린 9:16 이미지. 사진은 화면에서 보던 만큼 크게 */
 export async function composeStory(strip: Blob, backdrop: Backdrop): Promise<Blob> {
   const img = await loadImage(strip);
   const { c, ctx } = storyCanvas();
-  paintBackdrop(ctx, backdrop);
+  await paintBackdrop(ctx, backdrop);
 
   const k = Math.min(1500 / img.naturalHeight, 800 / img.naturalWidth);
   const w = img.naturalWidth * k;

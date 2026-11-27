@@ -63,6 +63,20 @@ export default function Exterior({ open, out, latest, total, onEnter, onAlbum }:
             <div className={css.boards} />
             <div className={css.spill} />
 
+            <div className={`${css.plate} f-plate`} aria-hidden="true">
+              <i />
+              <i />
+              <i />
+              <i />
+              <span>
+                PHOTOS
+                <br />
+                DELIVERED
+                <br />
+                HERE
+              </span>
+            </div>
+
             <div className={css.slot}>
               <div className={css.recess}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -104,8 +118,8 @@ export default function Exterior({ open, out, latest, total, onEnter, onAlbum }:
             <div className={css.flashLight} />
           </div>
 
-          <button className={css.hitDoor} onClick={onEnter} disabled={open} aria-label="커튼을 열고 부스 안으로 들어가기" />
-          <button className={css.hitSlot} onClick={onAlbum} disabled={open || total === 0} aria-label={`찍은 사진 ${total}장 보기`} />
+          <button className={css.hitDoor} onClick={onEnter} disabled={open} aria-label="open the curtain and step inside" />
+          <button className={css.hitSlot} onClick={onAlbum} disabled={open || total === 0} aria-label={`view ${total} saved ${total === 1 ? "photo" : "photos"}`} />
         </div>
       </div>
     </div>

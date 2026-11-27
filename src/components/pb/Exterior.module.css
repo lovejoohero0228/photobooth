@@ -266,12 +266,73 @@
     linear-gradient(180deg, transparent 80%, rgba(0, 0, 0, 0.38) 100%);
 }
 
+/* ── 배출구 위의 작은 금속 표지판: 실제 인화 화면의 명판과 같은 모양 */
+.plate {
+  left: 44px;
+  top: 152px;
+  width: 48px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 1.5px;
+  background:
+    var(--tex-brush-s),
+    var(--tex-brush-sd),
+    radial-gradient(120% 90% at 30% 10%, #f4f5f6 0%, #c3c7cc 45%, #9a9fa6 100%);
+  background-size:
+    170px 60px,
+    150px 50px,
+    auto;
+  box-shadow:
+    inset 0 0.5px 0 #fff,
+    inset 0 -0.5px 0 rgba(0, 0, 0, 0.5),
+    0 0 0 0.5px rgba(0, 0, 0, 0.55),
+    0 2px 3px rgba(0, 0, 0, 0.55);
+}
+.plate span {
+  position: static;
+  color: #141516;
+  font-weight: 700;
+  font-size: 4.1px;
+  line-height: 1.25;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-shadow: 0 0.5px 0 rgba(255, 255, 255, 0.75);
+}
+/* 십자 나사 */
+.plate i {
+  width: 2.6px;
+  height: 2.6px;
+  border-radius: 50%;
+  background:
+    linear-gradient(transparent 40%, rgba(0, 0, 0, 0.6) 40% 60%, transparent 60%),
+    linear-gradient(90deg, transparent 40%, rgba(0, 0, 0, 0.6) 40% 60%, transparent 60%),
+    radial-gradient(circle at 35% 30%, #fff 0%, #b3b8be 45%, #5d6269 100%);
+  box-shadow: 0 0.5px 0.8px rgba(0, 0, 0, 0.7);
+}
+.plate i:nth-child(1) {
+  left: 1.6px;
+  top: 1.6px;
+}
+.plate i:nth-child(2) {
+  right: 1.6px;
+  top: 1.6px;
+}
+.plate i:nth-child(3) {
+  left: 1.6px;
+  bottom: 1.6px;
+}
+.plate i:nth-child(4) {
+  right: 1.6px;
+  bottom: 1.6px;
+}
+
 /* ── 크롬 배출구 */
 .slot {
-  left: 46px;
-  top: 170px;
-  width: 44px;
-  height: 128px;
+  left: 50px;
+  top: 180px;
+  width: 36px;
+  height: 104px;
   border-radius: 5px;
   background: linear-gradient(100deg, #fdfdfd 0%, #c3c8cd 10%, #5f656c 20%, #eef0f2 34%, #aab0b6 52%, #f7f8f9 66%, #6b7178 82%, #d7dadd 100%);
   box-shadow:
@@ -281,7 +342,7 @@
     0 8px 12px rgba(0, 0, 0, 0.5);
 }
 .recess {
-  inset: 9px 9px 10px;
+  inset: 6px 6px 7px;
   overflow: hidden;
   background: linear-gradient(90deg, #050505 0%, #2c2d2f 22%, #0d0d0e 48%, #37383a 84%, #080808 100%);
   box-shadow:
@@ -303,19 +364,19 @@
   content: "";
   position: absolute;
   top: -1px;
-  left: -15px;
-  width: 34px;
-  height: 3.8px;
+  left: -9px;
+  width: 22px;
+  height: 3.4px;
   border-radius: 1px;
   background: linear-gradient(180deg, #fff, #c9cdd2 50%, #51565b);
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.7);
 }
 
 .recess img {
-  left: 6px;
+  left: 4px;
   bottom: 2px;
-  width: calc(100% - 12px);
-  max-height: calc(100% - 8px);
+  width: calc(100% - 8px);
+  max-height: calc(100% - 6px);
   object-fit: cover;
   object-position: bottom;
   box-shadow: 0 0 3px #000;
@@ -371,23 +432,20 @@
   right: 0;
   top: 388px;
   height: 52px;
-  perspective: 120px;
-  perspective-origin: 50% 0%;
+  /* 3D 변환(perspective)을 쓰면 모바일에서 바닥이 깜빡이다 사라져서, 평면 2D로 그린다 */
   overflow: hidden;
 }
 .floor {
-  left: -60%;
-  right: -60%;
-  top: 0;
-  height: 190px;
-  transform-origin: 50% 0;
-  transform: rotateX(68deg);
+  inset: 0;
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 35%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 45%),
+    /* 멀리(위)로 갈수록 타일이 가늘어 보이도록 */
+    linear-gradient(180deg, rgba(231, 223, 205, 0.18), transparent 70%),
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><rect width='32' height='32' fill='%23e7dfcd'/><path d='M0,0 H16 L0,16 Z M32,0 V16 L16,0 Z M0,32 V16 L16,32 Z M32,32 H16 L32,16 Z M16,16 L8,8 H24 Z M16,16 L8,24 H24 Z' fill='%231c1a17'/></svg>");
   background-size:
     auto,
-    26px 26px;
+    auto,
+    26px 10px;
 }
 .stool {
   left: 68px;
@@ -664,10 +722,10 @@
   height: 448px;
 }
 .hitSlot {
-  left: 52px;
-  top: 307px;
-  width: 64px;
-  height: 150px;
+  left: 58px;
+  top: 304px;
+  width: 52px;
+  height: 130px;
 }
 .hitDoor:disabled,
 .hitSlot:disabled {

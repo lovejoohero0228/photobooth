@@ -107,7 +107,6 @@ html {
 }
 .f-plate {
   font-family: var(--font-en), sans-serif;
-  text-transform: uppercase;
 }
 .f-title {
   font-weight: 700;

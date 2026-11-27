@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import css from "./Delivery.module.css";
 import { BACKDROPS, composeBackdrop, composeFlat, composeStory, RATIOS, saveImage, shareBlob, storyPhotoFrac, stripFilename, type Backdrop, type Ratio } from "@/lib/develop";
-import { detectInApp } from "@/lib/env";
+import { detectInApp, isIOS } from "@/lib/env";
 import { frameGeometry, getFrame } from "@/lib/frames";
 import { PRINT_SECS } from "@/lib/config";
 
@@ -186,11 +186,12 @@ export default function Delivery({ url, blob, cuts, frame, w, h, leaving, onAgai
     setBusy(true);
     try {
       const o = await output();
-      if (await shareBlob(o.blob, o.name)) {
+      // 아이폰: 공유 시트에 "이미지 저장"이 있어서 그걸 연다. 그 밖(안드로이드·PC)은 공유 시트에 저장이 없으므로 바로 내려받는다
+      if (isIOS() && (await shareBlob(o.blob, o.name))) {
         setHint(null);
       } else {
         const r = await saveImage(o.blob, o.name, detectInApp() !== null);
-        setHint(r === "longpress" ? "saving is blocked in this app. press and hold the photo to save" : null);
+        setHint(r === "longpress" ? "saving is blocked in this app. press and hold the photo to save" : isIOS() ? null : "saved to your downloads");
       }
     } catch {
       setHint("could not create the image");

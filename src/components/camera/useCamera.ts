@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MOBILE_CAMERA_ZOOM } from "@/lib/config";
+import { DEFAULT_ZOOM, ZOOM_LEVELS } from "@/lib/config";
 
 export type CameraState = "idle" | "starting" | "ready" | "denied" | "unsupported" | "error";
 
@@ -14,6 +14,37 @@ export function useCamera() {
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   /** 화면·촬영 모두에 걸어야 하는 디지털 확대 배율 (1이면 없음) */
   const [zoom, setZoom] = useState(1);
+  /** 사용자가 고른 배율 */
+  const [level, setLevelState] = useState(1);
+  const levelRef = useRef(1);
+  /** 기기가 하드웨어 줌을 주면 그걸 쓴다 */
+  const hwRef = useRef<{ track: MediaStreamTrack; min: number; max: number } | null>(null);
+
+  const apply = useCallback(async (l: number) => {
+    const hw = hwRef.current;
+    if (hw) {
+      try {
+        await hw.track.applyConstraints({ advanced: [{ zoom: Math.min(hw.max, Math.max(hw.min, hw.min * l)) } as MediaTrackConstraintSet] });
+        setZoom(1);
+        return;
+      } catch {
+        hwRef.current = null;
+      }
+    }
+    setZoom(l);
+  }, []);
+
+  const setLevel = useCallback(
+    (l: number) => {
+      levelRef.current = l;
+      setLevelState(l);
+      try {
+        localStorage.setItem("pb.zoom", String(l));
+      } catch {}
+      void apply(l);
+    },
+    [apply],
+  );
 
   const stop = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -52,23 +83,24 @@ export function useCamera() {
         }
       }
       streamRef.current = stream;
-      // 휴대폰 전면 카메라는 광각이라 일반 배율로 맞춘다. 기기가 광학/하드웨어 줌을 주면 그걸 쓰고, 아니면 디지털로 확대한다
-      let dz = 1;
-      if (window.matchMedia?.("(pointer: coarse)").matches) {
-        dz = MOBILE_CAMERA_ZOOM;
-        try {
-          const track = stream.getVideoTracks()[0];
-          const caps = track.getCapabilities?.() as (MediaTrackCapabilities & { zoom?: { min: number; max: number } }) | undefined;
-          if (caps?.zoom) {
-            const target = Math.min(caps.zoom.max, Math.max(caps.zoom.min, caps.zoom.min * MOBILE_CAMERA_ZOOM));
-            await track.applyConstraints({ advanced: [{ zoom: target } as MediaTrackConstraintSet] });
-            dz = 1;
-          }
-        } catch {
-          // 하드웨어 줌이 안 되면 디지털 확대로 대신한다
-        }
-      }
-      setZoom(dz);
+      // 배율: 기억해 둔 값 → 없으면 기기별 기본값. 하드웨어 줌이 되면 그걸, 아니면 디지털로 확대한다
+      const coarse = !!window.matchMedia?.("(pointer: coarse)").matches;
+      const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      let saved: number | null = null;
+      try {
+        const n = Number(localStorage.getItem("pb.zoom"));
+        if (ZOOM_LEVELS.includes(n)) saved = n;
+      } catch {}
+      const l = saved ?? (ios ? DEFAULT_ZOOM.ios : coarse ? DEFAULT_ZOOM.touch : DEFAULT_ZOOM.desktop);
+      levelRef.current = l;
+      setLevelState(l);
+      hwRef.current = null;
+      try {
+        const track = stream.getVideoTracks()[0];
+        const caps = track.getCapabilities?.() as (MediaTrackCapabilities & { zoom?: { min: number; max: number } }) | undefined;
+        if (caps?.zoom) hwRef.current = { track, min: caps.zoom.min, max: caps.zoom.max };
+      } catch {}
+      await apply(l);
       const v = videoRef.current;
       if (v) {
         v.srcObject = stream;
@@ -91,9 +123,9 @@ export function useCamera() {
         setError("could not start the camera");
       }
     }
-  }, [stop]);
+  }, [stop, apply]);
 
   useEffect(() => stop, [stop]);
 
-  return { videoRef, state, error, size, zoom, start, stop };
+  return { videoRef, state, error, size, zoom, level, setLevel, start, stop };
 }

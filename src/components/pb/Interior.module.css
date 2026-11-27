@@ -257,6 +257,31 @@
   text-decoration-color: rgba(217, 191, 114, 0.7);
 }
 
+/* 카메라 배율: 화면 아래쪽에 겹쳐 놓는 글자 버튼 */
+.zoom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 6px;
+  z-index: 4;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+.zoom button {
+  min-width: 44px;
+  min-height: 36px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: rgba(243, 233, 208, 0.7);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+.zoom button[data-on="true"] {
+  color: #d9bf72;
+  font-weight: 700;
+}
+
 /* 찍은 장수만큼 켜지는 등 */
 .dots {
   display: flex;

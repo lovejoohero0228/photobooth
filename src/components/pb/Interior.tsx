@@ -6,7 +6,7 @@ import css from "./Interior.module.css";
 import { FRAMES, frameGeometry, getFrame, type Frame } from "@/lib/frames";
 import { composeStrip, developCut, loadImage, type Developed } from "@/lib/develop";
 import { useCamera } from "@/components/camera/useCamera";
-import { COUNT_FROM, COUNT_MS, SHOTS, STILL_MS } from "@/lib/config";
+import { COUNT_FROM, COUNT_MS, SHOTS, STILL_MS, ZOOM_LEVELS } from "@/lib/config";
 
 type Phase = "camera" | "shooting" | "pick" | "develop";
 
@@ -58,7 +58,7 @@ function StripPreview({ frame, shots, picked }: { frame: Frame; shots: Shot[]; p
 }
 
 export default function Interior({ leaving, onExit, onDone, initial }: Props) {
-  const { videoRef, state: camState, error: camError, zoom, start: startCam, stop: stopCam } = useCamera();
+  const { videoRef, state: camState, error: camError, zoom, level, setLevel, start: startCam, stop: stopCam } = useCamera();
   const [phase, setPhase] = useState<Phase>(initial ? "pick" : "camera");
   const [shots, setShots] = useState<Shot[]>(initial?.shots ?? []);
   const [count, setCount] = useState<number | null>(null);
@@ -196,6 +196,15 @@ export default function Interior({ leaving, onExit, onDone, initial }: Props) {
           <div className={css.bezel}>
             <div className={css.glass}>
               <video ref={videoRef} className={css.video} playsInline muted autoPlay data-on={camReady && !still} style={{ transform: `scale(${-zoom}, ${zoom})` }} />
+              {camReady && phase === "camera" && (
+                <div className={css.zoom} role="radiogroup" aria-label="zoom">
+                  {ZOOM_LEVELS.map((z) => (
+                    <button key={z} role="radio" aria-checked={level === z} data-on={level === z} onClick={() => setLevel(z)}>
+                      {z}x
+                    </button>
+                  ))}
+                </div>
+              )}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {still && <img className={css.still} src={still} alt="" />}
               {camState === "starting" && <p className={css.msg}>starting camera…</p>}

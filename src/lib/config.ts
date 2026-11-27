@@ -14,5 +14,7 @@ export const COUNT_MS = 3000;
 export const STILL_MS = 700;
 /** 인화 대기(초) */
 export const PRINT_SECS = 1;
-/** 휴대폰 전면 카메라는 광각이라, 일반 배율처럼 보이도록 확대하는 배율 */
-export const MOBILE_CAMERA_ZOOM = 1.5;
+/** 촬영 화면에서 고를 수 있는 카메라 배율. 휴대폰 전면 카메라는 광각이라 확대 옵션을 둔다 */
+export const ZOOM_LEVELS = [1.2, 1.5];
+/** 처음 켰을 때 배율 (고른 배율은 기기에 기억한다): 아이폰 / 그 밖의 터치 기기 / 데스크톱 */
+export const DEFAULT_ZOOM = { ios: 1.5, touch: 1.2, desktop: 1.2 };

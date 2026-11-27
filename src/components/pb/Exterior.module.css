@@ -71,9 +71,9 @@
 
 /* ── 조명 간판: 알루미늄 상자 + 안에서 불이 들어오는 아크릴 */
 .sign {
-  left: 58px;
-  top: 34px;
-  width: 244px;
+  left: 16px;
+  top: 44px;
+  width: 256px;
   height: 70px;
   border-radius: 3px;
   background:
@@ -120,10 +120,10 @@
 }
 .signFace strong {
   position: static;
-  font-size: 27px;
+  font-size: 25px;
   line-height: 1;
-  letter-spacing: 3.2px;
-  margin-right: -3.2px;
+  letter-spacing: 2.6px;
+  margin-right: -2.6px;
   /* 아크릴 뒤에 붙인 시트지 글자: 가장자리로 빛이 샌다 */
   text-shadow:
     0 0 2px rgba(255, 246, 225, 0.95),
@@ -149,9 +149,9 @@
   }
 }
 .post {
-  top: 106px;
+  top: 114px;
   width: 7px;
-  height: 20px;
+  height: 11px;
   box-shadow: 2px 0 3px rgba(0, 0, 0, 0.5);
   background: linear-gradient(90deg, #44484d, #c2c5c9 40%, #7d8288 70%, #33363a);
 }
@@ -234,26 +234,13 @@
   width: 328px;
   height: 458px;
   overflow: hidden;
-  background: #7a4a25;
+  background: #744b2b;
   box-shadow: 0 0 0 1px rgba(20, 8, 0, 0.8);
 }
 .boards {
   inset: 0;
-  background:
-    /* 판자 사이 홈: 어두운 골 + 옆의 밝은 모서리 */
-    repeating-linear-gradient(90deg, rgba(30, 10, 0, 0.75) 0 1.1px, rgba(255, 200, 150, 0.2) 1.1px 2.2px, transparent 2.2px 17.4px, rgba(60, 25, 5, 0.25) 17.4px 18.2px),
-    var(--tex-wood-d),
-    var(--tex-wood-l),
-    var(--tex-blotch),
-    /* 판자마다 조금씩 다른 색 */
-    repeating-linear-gradient(90deg, #855228 0 18.2px, #784820 18.2px 36.4px, #8b582d 36.4px 54.6px, #7c4b22 54.6px 72.8px, #835027 72.8px 91px),
-    #7f4d25;
-  background-size:
-    auto,
-    150px 300px,
-    130px 260px,
-    300px 300px,
-    auto;
+  background: var(--wood-boards);
+  background-size: var(--wood-boards-size);
 }
 /* 간판과 전구 불빛이 본체 윗부분에 번진다 */
 .spill {
@@ -277,10 +264,10 @@
 
 /* ── 크롬 배출구 */
 .slot {
-  left: 40px;
-  top: 188px;
-  width: 56px;
-  height: 164px;
+  left: 46px;
+  top: 170px;
+  width: 44px;
+  height: 128px;
   border-radius: 5px;
   background: linear-gradient(100deg, #fdfdfd 0%, #c3c8cd 10%, #5f656c 20%, #eef0f2 34%, #aab0b6 52%, #f7f8f9 66%, #6b7178 82%, #d7dadd 100%);
   box-shadow:
@@ -289,7 +276,7 @@
     0 3px 5px rgba(0, 0, 0, 0.6);
 }
 .recess {
-  inset: 11px 11px 12px;
+  inset: 9px 9px 10px;
   overflow: hidden;
   background: linear-gradient(90deg, #050505 0%, #2c2d2f 22%, #0d0d0e 48%, #37383a 84%, #080808 100%);
   box-shadow:
@@ -399,36 +386,83 @@
 }
 .stool {
   left: 68px;
-  top: 300px;
+  top: 296px;
   width: 58px;
-  height: 126px;
+  height: 130px;
 }
+/* 가죽 방석: 옆면(두께) + 윗면 타원 + 파이핑 */
 .seat {
   left: 0;
-  top: 0;
+  top: 7px;
+  width: 58px;
+  height: 17px;
+  border-radius: 4px 4px 50% 50% / 4px 4px 9px 9px;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0%, transparent 22%, rgba(255, 255, 255, 0.1) 40%, transparent 58%, rgba(0, 0, 0, 0.5) 100%),
+    linear-gradient(180deg, #4a1c22 0%, #2c0e13 100%);
+  box-shadow:
+    0 5px 6px rgba(0, 0, 0, 0.55),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.5);
+}
+.seat::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -7px;
   width: 58px;
   height: 15px;
-  border-radius: 50% / 60% 60% 40% 40%;
-  background: linear-gradient(180deg, #fbf5e4 0%, #e6dcc2 45%, #a89d83 100%);
+  border-radius: 50%;
+  background:
+    radial-gradient(38% 42% at 36% 34%, rgba(255, 235, 230, 0.5) 0%, transparent 100%),
+    radial-gradient(70% 80% at 50% 40%, #7a3039 0%, #5a2028 60%, #3a1218 100%);
   box-shadow:
-    inset 0 -3px 3px rgba(0, 0, 0, 0.25),
-    0 3px 5px rgba(0, 0, 0, 0.5);
+    inset 0 -1px 2px rgba(0, 0, 0, 0.5),
+    0 0 0 0.6px rgba(0, 0, 0, 0.6);
 }
+/* 윗면 가장자리의 가는 크롬 파이핑 */
+.seat::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: -4px;
+  width: 52px;
+  height: 9px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 0.7px rgba(255, 255, 255, 0.16);
+}
+/* 크롬 기둥: 윗 칼라 + 아래로 넓어지는 곡선 */
 .leg {
-  left: 24px;
-  top: 13px;
-  width: 10px;
-  height: 104px;
-  background: linear-gradient(90deg, #4c5156, #f4f5f6 35%, #b9bdc2 55%, #3f4347);
+  left: 25px;
+  top: 22px;
+  width: 8px;
+  height: 98px;
+  clip-path: polygon(0 0, 100% 0, 100% 62%, 112% 100%, -12% 100%, 0 62%);
+  background: linear-gradient(90deg, #3b3f44 0%, #b9bdc2 18%, #fff 38%, #aeb2b8 62%, #43474c 100%);
 }
+.leg::before {
+  content: "";
+  position: absolute;
+  left: -3px;
+  top: 0;
+  width: 14px;
+  height: 5px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #3b3f44, #e8eaec 35%, #fff 45%, #8a8f95 75%, #34383c);
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.6);
+}
+/* 둥근 받침: 돔 + 바닥 그림자 */
 .foot {
-  left: 5px;
-  top: 108px;
-  width: 48px;
+  left: 4px;
+  top: 112px;
+  width: 50px;
   height: 14px;
   border-radius: 50%;
-  background: radial-gradient(60% 60% at 45% 35%, #eceef0, #878c92 60%, #3b3f43);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.7);
+  background:
+    radial-gradient(45% 40% at 38% 30%, rgba(255, 255, 255, 0.9) 0%, transparent 100%),
+    radial-gradient(70% 90% at 50% 35%, #d9dce0 0%, #8b9096 55%, #34383c 100%);
+  box-shadow:
+    0 5px 6px rgba(0, 0, 0, 0.75),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.45);
 }
 /* 부스 안은 위에서 불이 내려오고, 문틀 안쪽은 어둡다 */
 .roomShade {
@@ -622,10 +656,10 @@
   height: 440px;
 }
 .hitSlot {
-  left: 42px;
-  top: 322px;
-  width: 84px;
-  height: 190px;
+  left: 52px;
+  top: 307px;
+  width: 64px;
+  height: 150px;
 }
 .hitDoor:disabled,
 .hitSlot:disabled {

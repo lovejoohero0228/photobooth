@@ -47,8 +47,8 @@ export default function Exterior({ open, out, latest, total, onEnter, onAlbum }:
               <strong className="f-sign">PHOTOBOOTH</strong>
             </div>
           </div>
-          <i className={css.post} style={{ left: 84 }} />
-          <i className={css.post} style={{ left: 269 }} />
+          <i className={css.post} style={{ left: 38 }} />
+          <i className={css.post} style={{ left: 243 }} />
 
           {/* 지붕 띠에 매달린 전구 */}
           <div className={css.fascia} />

@@ -1,13 +1,13 @@
 "use client";
 
-// 배출구 — 5초 뒤 사진이 T자 손잡이 뒤로 드르륵 내려와 놓이고, 곧 그 사진이 그대로 커진다.
+// 배출구 — 2초 뒤 사진이 T자 손잡이 뒤로 드르륵 내려와 놓이고, 곧 그 사진이 그대로 커진다.
 // 커진 뒤에는 사진 크기는 그대로 두고 뒤 배경만 바꿔 가며 저장·공유한다.
 import { useCallback, useEffect, useRef, useState } from "react";
 import css from "./Delivery.module.css";
 import { BACKDROPS, composeBackdrop, composeStory, saveImage, shareBlob, stripFilename, type Backdrop } from "@/lib/develop";
 import { detectInApp } from "@/lib/env";
 import { PRINT_SECS } from "@/lib/config";
-import { playBeep, playClick, playDispense, playHum, playPaper } from "@/lib/sound";
+import { playClick, playDispense, playHum, playPaper } from "@/lib/sound";
 
 type Phase = "wait" | "drop" | "rest" | "held";
 
@@ -20,12 +20,11 @@ interface Props {
   onAgain: () => void;
 }
 
-const DROP_MS = 1700;
+const DROP_MS = 2000;
 const REST_MS = 1500;
 
 export default function Delivery({ url, blob, w, h, leaving, onAgain }: Props) {
   const [phase, setPhase] = useState<Phase>("wait");
-  const [secs, setSecs] = useState(PRINT_SECS);
   const [held, setHeld] = useState<string | undefined>();
   const [hint, setHint] = useState<string | null>(null);
   const [backdrop, setBackdrop] = useState<Backdrop | null>(null);
@@ -55,11 +54,6 @@ export default function Delivery({ url, blob, w, h, leaving, onAgain }: Props) {
     const timers: ReturnType<typeof setTimeout>[] = [];
     const at = (ms: number, fn: () => void) => timers.push(setTimeout(fn, ms));
     playHum(PRINT_SECS);
-    for (let i = 1; i <= PRINT_SECS; i++)
-      at(i * 1000, () => {
-        setSecs(PRINT_SECS - i);
-        if (i < PRINT_SECS) playBeep(false);
-      });
     const t0 = PRINT_SECS * 1000 + 200;
     at(t0, () => {
       setPhase("drop");
@@ -141,12 +135,6 @@ export default function Delivery({ url, blob, w, h, leaving, onAgain }: Props) {
             delivered
             <br />
             here
-          </div>
-          <div className={css.secs} aria-live="polite" aria-label={phase === "wait" ? `${secs}초 뒤에 나와요` : "사진이 나왔어요"}>
-            <b key={secs} className="f-sign">
-              {secs}
-            </b>
-            <span className="f-plate">sec</span>
           </div>
         </div>
 

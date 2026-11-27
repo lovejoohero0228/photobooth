@@ -192,28 +192,30 @@ function rng(seed: number) {
 
 function paintWood(ctx: CanvasRenderingContext2D) {
   const r = rng(77);
-  ctx.fillStyle = "#8a5428";
+  // 첫 화면 부스 본체와 같은 판자 색 · 홈 (화면 비율에 맞춰 키운다)
+  const PLANK = 49;
+  const colors = ["#7e532f", "#724926", "#845934", "#764c28", "#7d512d"];
+  ctx.fillStyle = "#794e2b";
   ctx.fillRect(0, 0, SW, SH);
-  // 넓은 판마다 조금 다른 색
-  const planks = 3;
-  for (let i = 0; i < planks; i++) {
-    ctx.fillStyle = ["rgba(60,25,0,0.14)", "rgba(255,190,120,0.07)", "rgba(40,15,0,0.2)"][i];
-    ctx.fillRect((SW / planks) * i, 0, SW / planks, SH);
+  for (let i = 0; i * PLANK < SW; i++) {
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.fillRect(i * PLANK, 0, PLANK, SH);
   }
   // 세로 결: 굵기와 진하기가 제각각인 선 수천 개
   for (let i = 0; i < 2600; i++) {
     const x = r() * SW;
     const w = 0.6 + r() * r() * 7;
     const dark = r() < 0.62;
-    ctx.fillStyle = dark ? `rgba(45,18,2,${0.05 + r() * 0.22})` : `rgba(255,205,140,${0.03 + r() * 0.12})`;
+    ctx.fillStyle = dark ? `rgba(36,14,3,${0.05 + r() * 0.22})` : `rgba(248,200,157,${0.03 + r() * 0.12})`;
     const y0 = r() < 0.35 ? r() * SH : 0;
     ctx.fillRect(x, y0, w, r() < 0.35 ? r() * SH * 0.7 : SH);
   }
-  for (let i = 1; i < planks; i++) {
-    ctx.fillStyle = "rgba(25,8,0,0.6)";
-    ctx.fillRect((SW / planks) * i, 0, 2, SH);
-    ctx.fillStyle = "rgba(255,210,150,0.18)";
-    ctx.fillRect((SW / planks) * i + 2, 0, 2, SH);
+  // 판자 사이 홈: 어두운 골 + 옆의 밝은 모서리
+  for (let i = 0; i * PLANK < SW; i++) {
+    ctx.fillStyle = "rgba(28,11,2,0.75)";
+    ctx.fillRect(i * PLANK, 0, 3, SH);
+    ctx.fillStyle = "rgba(248,200,157,0.2)";
+    ctx.fillRect(i * PLANK + 3, 0, 3, SH);
   }
   // 니스 반사
   const gl = ctx.createLinearGradient(0, 0, SW, SH * 0.25);

@@ -7,7 +7,7 @@ import { FRAMES, frameGeometry, type Frame } from "@/lib/frames";
 import { composeStrip, developCut, loadImage, type Developed } from "@/lib/develop";
 import { useCamera } from "@/components/camera/useCamera";
 import { COUNT_FROM, COUNT_MS, SHOTS, STILL_MS } from "@/lib/config";
-import { playBeep, playClick, playShutter } from "@/lib/sound";
+import { playClick, playShutter } from "@/lib/sound";
 
 type Phase = "camera" | "shooting" | "pick" | "develop";
 
@@ -86,7 +86,7 @@ export default function Interior({ leaving, onExit, onDone }: Props) {
     void startCam();
   }
 
-  /** 연속 촬영. 한 장마다 5부터 1까지 센다 */
+  /** 연속 촬영. 한 장마다 3부터 1까지 센다 */
   async function shoot() {
     const v = videoRef.current;
     if (!v || camState !== "ready") return;
@@ -97,7 +97,6 @@ export default function Interior({ leaving, onExit, onDone }: Props) {
     for (let i = 0; i < SHOTS; i++) {
       for (let n = COUNT_FROM; n >= 1; n--) {
         setCount(n);
-        playBeep(n === 1);
         await sleep(TICK);
         if (run.current !== id) return;
       }

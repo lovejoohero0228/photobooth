@@ -12,19 +12,12 @@
     /* 위에서 떨어지는 따뜻한 조명, 아래로 갈수록 어둡게 */
     radial-gradient(130% 46% at 50% 0%, rgba(255, 226, 180, 0.2) 0%, rgba(255, 214, 160, 0.05) 50%, transparent 74%),
     linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, 0.45) 100%),
-    var(--tex-wood-d),
-    var(--tex-blotch),
-    /* 넓은 판 이음 */
-    repeating-linear-gradient(90deg, rgba(10, 4, 0, 0.55) 0 1px, rgba(255, 200, 150, 0.07) 1px 2px, transparent 2px 173px),
-    linear-gradient(90deg, #3f2516 0%, #4a2c1b 30%, #3c2314 62%, #472a19 100%);
+    var(--wood-boards);
   background-size:
     auto,
     auto,
-    520px 1100px,
-    640px 640px,
-    auto,
-    auto;
-  box-shadow: 0 0 0 100vmax #0d0704;
+    var(--wood-boards-size);
+  box-shadow: 0 0 0 100vmax #0c0705;
   animation: stepIn 0.6s 0.28s var(--ease-out) both;
 }
 @keyframes stepIn {
@@ -138,7 +131,7 @@
   place-items: center;
   min-height: 0;
 }
-/* 원목 몰딩 액자 */
+/* 검정 액자 */
 .bezel {
   position: relative;
   width: 100%;
@@ -146,15 +139,9 @@
   min-width: 220px;
   aspect-ratio: 5 / 4;
   padding: 9px;
-  background:
-    var(--tex-wood-d),
-    linear-gradient(135deg, #5b3521 0%, #2e190e 48%, #4a2a19 52%, #1e0f08 100%);
-  background-size:
-    200px 400px,
-    auto;
+  background: #000;
   box-shadow:
-    inset 0 1px 0 rgba(255, 200, 150, 0.25),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
     0 0 0 1px rgba(0, 0, 0, 0.6),
     0 10px 22px rgba(0, 0, 0, 0.5);
 }
@@ -264,28 +251,21 @@
   align-self: center;
   min-height: 96px;
 }
-/* 화면 위의 버튼: 얇은 금색 선, 넓은 자간, 녹화 점 */
+/* 프레임 없는 글자 버튼: 넓은 자간, 녹화 점 */
 .start {
   display: inline-flex;
   align-items: center;
   gap: 12px;
   min-height: 56px;
-  padding: 0 28px 0 24px;
-  border: 1px solid rgba(217, 191, 114, 0.75);
-  border-radius: 2px;
-  background: rgba(10, 6, 3, 0.42);
+  padding: 0 20px;
+  border: 0;
+  background: none;
   color: #f3e9d0;
   font-size: 15.5px;
   letter-spacing: 0.1em;
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-  box-shadow:
-    inset 0 0 0 3px rgba(10, 6, 3, 0.42),
-    inset 0 0 0 4px rgba(217, 191, 114, 0.22),
-    0 8px 22px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
   transition:
     transform 0.08s,
-    background 0.15s,
     opacity 0.3s;
   animation: fade 0.3s ease-out;
 }
@@ -304,7 +284,7 @@
 }
 .start:active {
   transform: scale(0.97);
-  background: rgba(217, 191, 114, 0.18);
+  opacity: 0.7;
 }
 .start:disabled {
   opacity: 0.35;

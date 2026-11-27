@@ -2,7 +2,8 @@
 // SVG를 거치지 않고 canvas에 직접 그린다 (iOS Safari에서 가장 안정적).
 
 import { CELL_PX, CUT_ASPECT } from "./config";
-import { frameGeometry, type Frame } from "./frames";
+import { frameGeometry, getFrame, type Frame } from "./frames";
+import { DEFAULT_TONE, type Tone } from "./tone";
 
 type Source = HTMLVideoElement | HTMLImageElement | HTMLCanvasElement;
 
@@ -12,8 +13,8 @@ function sourceSize(src: Source) {
   return { w: src.width, h: src.height };
 }
 
-/** 소스 가운데를 칸 비율로 잘라(object-fit: cover와 같은 계산) 흑백 처리한 컷 */
-export function developCut(src: Source): HTMLCanvasElement {
+/** 소스 가운데를 칸 비율로 잘라(object-fit: cover와 같은 계산) 색 그대로 옮긴 컷 */
+export function rawCut(src: Source, zoom = 1): HTMLCanvasElement {
   const { w: sw, h: sh } = sourceSize(src);
   let cw = sw;
   let ch = sw / CUT_ASPECT;
@@ -21,6 +22,9 @@ export function developCut(src: Source): HTMLCanvasElement {
     ch = sh;
     cw = sh * CUT_ASPECT;
   }
+  // 디지털 확대: 가운데를 더 좁게 잘라 쓴다
+  cw /= zoom;
+  ch /= zoom;
   const out = document.createElement("canvas");
   out.width = CELL_PX;
   out.height = Math.round(CELL_PX / CUT_ASPECT);
@@ -28,13 +32,27 @@ export function developCut(src: Source): HTMLCanvasElement {
   ctx.imageSmoothingQuality = "high";
   // 저장본은 좌우 반전하지 않는다 (미리보기만 거울)
   ctx.drawImage(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, 0, 0, out.width, out.height);
-  silver(ctx, out.width, out.height);
-  vignette(ctx, out.width, out.height);
   return out;
 }
 
-/** 흑백 + 대비 + 필름 입자. ctx.filter는 iOS에서 불안정해 픽셀을 직접 만진다 */
-function silver(ctx: CanvasRenderingContext2D, w: number, h: number) {
+/** 흑백으로 현상한 컷 (잘라낸 컷에 톤을 입힌다) */
+export function developRaw(raw: HTMLCanvasElement, tone: Tone = DEFAULT_TONE): HTMLCanvasElement {
+  const out = document.createElement("canvas");
+  out.width = raw.width;
+  out.height = raw.height;
+  const ctx = out.getContext("2d", { willReadFrequently: true })!;
+  ctx.drawImage(raw, 0, 0);
+  silver(ctx, out.width, out.height, tone);
+  vignette(ctx, out.width, out.height, tone.vignette);
+  return out;
+}
+
+export function developCut(src: Source, zoom = 1, tone: Tone = DEFAULT_TONE): HTMLCanvasElement {
+  return developRaw(rawCut(src, zoom), tone);
+}
+
+/** 흑백 + 노출/대비 + 필름 입자. ctx.filter는 iOS에서 불안정해 픽셀을 직접 만진다 */
+function silver(ctx: CanvasRenderingContext2D, w: number, h: number, t: Tone) {
   const img = ctx.getImageData(0, 0, w, h);
   const d = img.data;
   let s = (Math.random() * 2 ** 31) | 1;
@@ -44,9 +62,13 @@ function silver(ctx: CanvasRenderingContext2D, w: number, h: number) {
     s ^= s << 5;
     return (s >>> 0) / 4294967296 - 0.5;
   };
+  const inv = 1 / t.gamma;
   for (let i = 0; i < d.length; i += 4) {
-    const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-    let v = (lum - 128) * 1.3 + 128 + 8;
+    let v = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+    // 노출(gain) → 감마(밝은 쪽으로 끌어올림) → 대비 → 밝기
+    v *= t.gain;
+    if (t.gamma !== 1) v = 255 * Math.pow(v > 255 ? 1 : v / 255, inv);
+    v = (v - 128) * t.contrast + 128 + t.offset;
     const mid = 1 - Math.abs(v - 128) / 160;
     v += rand() * 24 * (0.5 + mid);
     v = v < 0 ? 0 : v > 255 ? 255 : v;
@@ -57,10 +79,10 @@ function silver(ctx: CanvasRenderingContext2D, w: number, h: number) {
   ctx.putImageData(img, 0, 0);
 }
 
-function vignette(ctx: CanvasRenderingContext2D, w: number, h: number) {
+function vignette(ctx: CanvasRenderingContext2D, w: number, h: number, strength: number) {
   const g = ctx.createRadialGradient(w / 2, h * 0.45, Math.min(w, h) * 0.35, w / 2, h / 2, Math.hypot(w, h) * 0.62);
   g.addColorStop(0, "rgba(0,0,0,0)");
-  g.addColorStop(1, "rgba(0,0,0,0.5)");
+  g.addColorStop(1, `rgba(0,0,0,${strength})`);
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, w, h);
 }
@@ -75,14 +97,14 @@ export function loadImage(file: Blob): Promise<HTMLImageElement> {
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error("이미지를 열 수 없어요"));
+      reject(new Error("could not open the image"));
     };
     img.src = url;
   });
 }
 
-function toBlob(c: HTMLCanvasElement, quality: number): Promise<Blob> {
-  return new Promise((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error("이미지 변환 실패"))), "image/jpeg", quality));
+function toBlob(c: HTMLCanvasElement, quality: number, type = "image/jpeg"): Promise<Blob> {
+  return new Promise((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error("could not convert the image"))), type, quality));
 }
 
 function cssFont(name: string, fallback: string) {
@@ -144,13 +166,13 @@ export async function composeStrip(cuts: HTMLCanvasElement[], frame: Frame, date
   // 아래 여백에 작게 찍힌 날짜: 사진 오른쪽 끝에 맞춘다
   const font = cssFont("--font-en", "sans-serif");
   try {
-    await document.fonts.load(`500 ${Math.round(u * 0.05)}px ${font}`);
+    await document.fonts.load(`500 ${Math.round(CELL_PX * 0.03)}px ${font}`);
   } catch {}
   ctx.fillStyle = "rgba(233,226,210,0.62)";
   ctx.textBaseline = "middle";
-  ctx.font = `500 ${Math.round(u * 0.05)}px ${font}`;
+  ctx.font = `500 ${Math.round(CELL_PX * 0.03)}px ${font}`;
   const ymd = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
-  spaced(ctx, ymd, c.width - g.cells[0].x * u, (g.footY + g.footH * 0.52) * u, u * 0.012, "right");
+  spaced(ctx, ymd, (g.cells[0].x + g.cells[0].w) * u, (g.footY + g.footH * 0.52) * u, CELL_PX * 0.008, "right");
 
   // 인화지 결
   ctx.fillStyle = ctx.createPattern(noiseTile(12), "repeat")!;
@@ -168,7 +190,7 @@ export async function composeStrip(cuts: HTMLCanvasElement[], frame: Frame, date
   return { full, thumb, w: c.width, h: c.height };
 }
 
-// ───────────────────────────── 스토리용 배경 (9:16)
+// ───────────────────────────── 스토리용 배경 (3:4)
 
 /** public/bg 의 사진 배경 */
 export interface BackdropDef {
@@ -178,19 +200,30 @@ export interface BackdropDef {
 }
 const bg = (key: string, name: string): BackdropDef => ({ key, name, src: `/bg/${key}.jpeg` });
 export const BACKDROPS: BackdropDef[] = [
-  bg("green-cross", "Cross"),
-  bg("navy-dots", "Navy"),
-  bg("navy-lace", "Lace"),
-  bg("lace-black-dots", "Lace Dots"),
-  bg("red-pink-stripes", "Candy"),
-  bg("blue-swirl", "Swirl"),
-  bg("black-cream-dots", "Polka"),
-  bg("pink-floral", "Floral"),
+  bg("green-cross", "cross"),
+  bg("navy-dots", "navy"),
+  bg("navy-lace", "lace"),
+  bg("lace-black-dots", "lace dots"),
+  bg("red-pink-stripes", "candy"),
+  bg("blue-swirl", "swirl"),
+  bg("black-cream-dots", "polka"),
+  bg("blue-stars", "sky stars"),
+  bg("purple-dots", "purple"),
+  bg("cream-wrinkled-dots", "wrinkle"),
+  bg("wine-velvet", "wine"),
+  bg("orange-linen", "orange"),
+  bg("dusty-blue", "dusty"),
+  bg("pink-knit", "knit"),
 ];
 export type Backdrop = string;
 
+/** 저장 이미지 비율: 인스타 피드용 3:4, 스토리용 9:16 */
+export type Ratio = "3:4" | "9:16";
+export const RATIOS: Ratio[] = ["3:4", "9:16"];
 const SW = 1080;
-const SH = 1920;
+const heightOf = (r: Ratio) => (r === "9:16" ? 1920 : 1440);
+/** 사진 그림자 (저장 이미지 기준 px) */
+export const SHADOW = { blur: 26, x: 8, y: 14 };
 
 const bgImages = new Map<string, Promise<HTMLImageElement>>();
 function loadBackdrop(key: string): Promise<HTMLImageElement> {
@@ -200,7 +233,7 @@ function loadBackdrop(key: string): Promise<HTMLImageElement> {
     p = new Promise<HTMLImageElement>((res, rej) => {
       const img = new Image();
       img.onload = () => res(img);
-      img.onerror = () => rej(new Error("배경을 열 수 없어요"));
+      img.onerror = () => rej(new Error("could not open the background"));
       img.src = def?.src ?? "";
     });
     p.catch(() => bgImages.delete(key));
@@ -209,8 +242,9 @@ function loadBackdrop(key: string): Promise<HTMLImageElement> {
   return p;
 }
 
-/** 9:16 캔버스를 꽉 채운다(cover) */
-async function paintBackdrop(ctx: CanvasRenderingContext2D, backdrop: Backdrop) {
+/** 캔버스를 꽉 채운다(cover). 사진 가운데를 기준으로 위아래를 잘라 비율에 맞춘다 */
+async function paintBackdrop(ctx: CanvasRenderingContext2D, backdrop: Backdrop, ratio: Ratio) {
+  const SH = heightOf(ratio);
   const img = await loadBackdrop(backdrop);
   const k = Math.max(SW / img.naturalWidth, SH / img.naturalHeight);
   const w = img.naturalWidth * k;
@@ -219,14 +253,15 @@ async function paintBackdrop(ctx: CanvasRenderingContext2D, backdrop: Backdrop) 
   ctx.drawImage(img, (SW - w) / 2, (SH - h) / 2, w, h);
 }
 
-function grainOver(ctx: CanvasRenderingContext2D) {
+function grainOver(ctx: CanvasRenderingContext2D, SH: number) {
   ctx.globalCompositeOperation = "overlay";
   ctx.fillStyle = ctx.createPattern(noiseTile(26), "repeat")!;
   ctx.fillRect(0, 0, SW, SH);
   ctx.globalCompositeOperation = "source-over";
 }
 
-function storyCanvas() {
+function storyCanvas(ratio: Ratio) {
+  const SH = heightOf(ratio);
   const c = document.createElement("canvas");
   c.width = SW;
   c.height = SH;
@@ -236,41 +271,70 @@ function storyCanvas() {
 }
 
 /** 배경만 (화면에서 사진 뒤에 깔 때 쓴다) */
-export async function composeBackdrop(backdrop: Backdrop): Promise<Blob> {
-  const { c, ctx } = storyCanvas();
-  await paintBackdrop(ctx, backdrop);
+export async function composeBackdrop(backdrop: Backdrop, ratio: Ratio): Promise<Blob> {
+  const { c, ctx } = storyCanvas(ratio);
+  await paintBackdrop(ctx, backdrop, ratio);
   return toBlob(c, 0.88);
 }
 
-/** 사진을 가운데 살짝 비스듬히 올린 9:16 이미지. 사진은 화면에서 보던 만큼 크게 */
-export async function composeStory(strip: Blob, backdrop: Backdrop): Promise<Blob> {
-  const img = await loadImage(strip);
-  const { c, ctx } = storyCanvas();
-  await paintBackdrop(ctx, backdrop);
+/** 프레임을 뺀 사진: 컷은 제자리에 두고 프레임 자리는 투명한 빈 공간으로 둔다 (날짜도 없다) */
+export async function composeFlat(cuts: HTMLCanvasElement[], frameKey: string): Promise<{ blob: Blob; w: number; h: number }> {
+  const fr = getFrame(frameKey);
+  const g = frameGeometry(fr);
+  const u = CELL_PX;
+  const c = document.createElement("canvas");
+  c.width = Math.round(g.w * u);
+  c.height = Math.round(g.h * u);
+  const ctx = c.getContext("2d")!;
+  ctx.imageSmoothingQuality = "high";
+  g.cells.forEach((cell, i) => {
+    if (cuts[i]) ctx.drawImage(cuts[i], Math.round(cell.x * u), Math.round(cell.y * u), Math.round(cell.w * u), Math.round(cell.h * u));
+  });
+  return { blob: await toBlob(c, 1, "image/png"), w: c.width, h: c.height };
+}
 
-  const k = Math.min(1500 / img.naturalHeight, 800 / img.naturalWidth);
+/** 레이아웃별 최대 크기. 높이는 캔버스가 길어진 만큼(9:16) 같이 늘어난다 */
+function storyBox(frameKey: string, ratio: Ratio) {
+  const b = getFrame(frameKey).story;
+  return { w: b.w, h: (b.h * heightOf(ratio)) / 1440 };
+}
+
+/** 저장 이미지에서 사진이 차지하는 폭의 비율 — 화면 미리보기도 같은 식으로 맞춘다.
+ *  레이아웃마다 허용 크기가 달라, 컷이 적을수록 사진이 작고 배경 여백이 넓다 */
+export function storyPhotoFrac(nw: number, nh: number, frameKey: string, ratio: Ratio) {
+  const { w, h } = storyBox(frameKey, ratio);
+  return Math.min((h * nw) / nh, w) / SW;
+}
+
+/** 사진을 가운데 올린 3:4 이미지(tilt면 살짝 비스듬히). 배경 안에서 사진은 조금 작게 */
+export async function composeStory(strip: Blob, backdrop: Backdrop, frameKey: string, ratio: Ratio, tilt = true): Promise<Blob> {
+  const SH = heightOf(ratio);
+  const img = await loadImage(strip);
+  const { c, ctx } = storyCanvas(ratio);
+  await paintBackdrop(ctx, backdrop, ratio);
+
+  const box = storyBox(frameKey, ratio);
+  const k = Math.min(box.h / img.naturalHeight, box.w / img.naturalWidth);
   const w = img.naturalWidth * k;
   const h = img.naturalHeight * k;
   ctx.save();
   ctx.translate(SW / 2, SH * 0.5);
-  ctx.rotate((-2 * Math.PI) / 180);
-  ctx.shadowColor = "rgba(0,0,0,0.6)";
-  ctx.shadowBlur = 50;
-  ctx.shadowOffsetX = 14;
-  ctx.shadowOffsetY = 30;
-  ctx.fillStyle = "#0c0b0a";
-  ctx.fillRect(-w / 2, -h / 2, w, h);
-  ctx.shadowColor = "transparent";
+  ctx.rotate(((tilt ? -2 : 0) * Math.PI) / 180);
+  // 작고 가까운 그림자 (프레임이 없으면 컷 모양대로 생긴다)
+  ctx.shadowColor = "rgba(0,0,0,0.5)";
+  ctx.shadowBlur = SHADOW.blur;
+  ctx.shadowOffsetX = SHADOW.x;
+  ctx.shadowOffsetY = SHADOW.y;
   ctx.drawImage(img, -w / 2, -h / 2, w, h);
   ctx.restore();
 
-  grainOver(ctx);
+  grainOver(ctx, SH);
   return toBlob(c, 0.9);
 }
 
-export function stripFilename(date = new Date(), tag = "") {
+export function stripFilename(date = new Date(), tag = "", ext = "jpg") {
   const p = (n: number) => String(n).padStart(2, "0");
-  return `photos-${date.getFullYear()}${p(date.getMonth() + 1)}${p(date.getDate())}-${p(date.getHours())}${p(date.getMinutes())}${tag ? `-${tag}` : ""}.jpg`;
+  return `photos-${date.getFullYear()}${p(date.getMonth() + 1)}${p(date.getDate())}-${p(date.getHours())}${p(date.getMinutes())}${tag ? `-${tag}` : ""}.${ext}`;
 }
 
 export function downloadBlob(blob: Blob, filename: string) {

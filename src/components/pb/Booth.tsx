@@ -7,11 +7,12 @@ import Interior, { type ShootResult } from "./Interior";
 import Delivery from "./Delivery";
 import Album from "./Album";
 import InAppNotice from "@/components/InAppNotice";
-import { listStrips, saveStrip, stripBlob } from "@/lib/strips";
+import { deleteStrip, listStrips, saveStrip, stripBlob } from "@/lib/strips";
 
 type View = "outside" | "inside" | "delivery";
 
 interface Result extends ShootResult {
+  id: string;
   url: string;
 }
 
@@ -27,6 +28,8 @@ export default function Booth() {
   const [latest, setLatest] = useState<string | undefined>();
   const [total, setTotal] = useState(0);
   const [album, setAlbum] = useState(false);
+  /** 배출구에서 레이아웃 고르기로 돌아온 경우 */
+  const [reprint, setReprint] = useState(false);
   const latestUrl = useRef<string | undefined>(undefined);
 
   const refresh = useCallback(async () => {
@@ -52,6 +55,7 @@ export default function Booth() {
   }
 
   function enter() {
+    setReprint(false);
     setCurtain(true);
     setTimeout(() => go("inside"), CURTAIN_MS);
     setTimeout(() => setCurtain(false), CURTAIN_MS + CROSS_MS);
@@ -59,9 +63,20 @@ export default function Booth() {
 
   function done(r: ShootResult) {
     const id = crypto.randomUUID?.() ?? String(Date.now());
-    setResult({ ...r, url: URL.createObjectURL(r.full) });
+    // 레이아웃을 다시 골라 인화한 경우 앨범에 같은 사진이 두 번 남지 않게 이전 것을 바꾼다
+    if (result) {
+      const prev = result;
+      void deleteStrip(prev.id);
+      setTimeout(() => URL.revokeObjectURL(prev.url), CROSS_MS + 500);
+    }
+    setResult({ ...r, id, url: URL.createObjectURL(r.full) });
     go("delivery");
     void saveStrip({ id, createdAt: Date.now(), frame: r.frame, w: r.w, h: r.h }, r.full, r.thumb).then(refresh);
+  }
+
+  function backToLayout() {
+    setReprint(true);
+    go("inside");
   }
 
   function again() {
@@ -78,8 +93,8 @@ export default function Booth() {
   return (
     <main>
       {show("outside") && <Exterior open={curtain || leaving === "outside"} out={leaving === "outside"} latest={latest} total={total} onEnter={enter} onAlbum={() => setAlbum(true)} />}
-      {show("inside") && <Interior leaving={leaving === "inside"} onExit={() => go("outside")} onDone={done} />}
-      {show("delivery") && result && <Delivery url={result.url} blob={result.full} w={result.w} h={result.h} leaving={leaving === "delivery"} onAgain={again} />}
+      {show("inside") && <Interior leaving={leaving === "inside"} onExit={() => go("outside")} onDone={done} initial={reprint && result ? result : undefined} />}
+      {show("delivery") && result && <Delivery url={result.url} blob={result.full} frame={result.frame} cuts={result.picked.map((i) => result.shots[i].canvas)} w={result.w} h={result.h} leaving={leaving === "delivery"} onAgain={again} onLayout={backToLayout} />}
 
       {album && <Album onClose={() => setAlbum(false)} onChanged={refresh} />}
       <InAppNotice />

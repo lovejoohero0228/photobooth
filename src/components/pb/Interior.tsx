@@ -3,26 +3,32 @@
 // 부스 안 — 원목 벽에 렌즈(LOOK · HERE)와 화면. 버튼 하나로 연속 촬영하고, 프레임과 넣을 사진을 고른다.
 import { useEffect, useRef, useState } from "react";
 import css from "./Interior.module.css";
-import { FRAMES, frameGeometry, type Frame } from "@/lib/frames";
+import { FRAMES, frameGeometry, getFrame, type Frame } from "@/lib/frames";
 import { composeStrip, developCut, loadImage, type Developed } from "@/lib/develop";
 import { useCamera } from "@/components/camera/useCamera";
 import { COUNT_FROM, COUNT_MS, SHOTS, STILL_MS } from "@/lib/config";
 
 type Phase = "camera" | "shooting" | "pick" | "develop";
 
-interface Shot {
+export interface Shot {
   canvas: HTMLCanvasElement;
   url: string;
 }
 
 export interface ShootResult extends Developed {
   frame: string;
+  /** 찍은 컷 전부와 고른 순서 — 배출구에서 레이아웃 화면으로 돌아올 때 그대로 되살린다 */
+  shots: Shot[];
+  picked: number[];
+  date: Date;
 }
 
 interface Props {
   leaving: boolean;
   onExit: () => void;
   onDone: (r: ShootResult) => void;
+  /** 배출구에서 돌아온 경우: 카메라 없이 고르기 화면부터 */
+  initial?: Pick<ShootResult, "frame" | "shots" | "picked">;
 }
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
@@ -51,27 +57,28 @@ function StripPreview({ frame, shots, picked }: { frame: Frame; shots: Shot[]; p
   );
 }
 
-export default function Interior({ leaving, onExit, onDone }: Props) {
-  const { videoRef, state: camState, error: camError, start: startCam, stop: stopCam } = useCamera();
-  const [phase, setPhase] = useState<Phase>("camera");
-  const [shots, setShots] = useState<Shot[]>([]);
+export default function Interior({ leaving, onExit, onDone, initial }: Props) {
+  const { videoRef, state: camState, error: camError, zoom, start: startCam, stop: stopCam } = useCamera();
+  const [phase, setPhase] = useState<Phase>(initial ? "pick" : "camera");
+  const [shots, setShots] = useState<Shot[]>(initial?.shots ?? []);
   const [count, setCount] = useState<number | null>(null);
   const [still, setStill] = useState<string | null>(null);
   const [flash, setFlash] = useState(0);
-  const [frameKey, setFrameKey] = useState("four");
-  const [picked, setPicked] = useState<number[]>([]);
+  const [frameKey, setFrameKey] = useState(initial?.frame ?? "four");
+  const [picked, setPicked] = useState<number[]>(initial?.picked ?? []);
   const [note, setNote] = useState<string | null>(null);
 
-  const frame = FRAMES.find((f) => f.key === frameKey) ?? FRAMES[2];
+  const frame = getFrame(frameKey);
   const run = useRef(0);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // 들어오자마자 카메라를 켠다
   useEffect(() => {
-    void Promise.resolve().then(startCam);
+    if (!initial) void Promise.resolve().then(startCam);
     return () => {
       run.current++;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startCam]);
 
   function retake() {
@@ -100,7 +107,7 @@ export default function Interior({ leaving, onExit, onDone }: Props) {
       }
       setCount(null);
       setFlash((f) => f + 1);
-      const canvas = developCut(v);
+      const canvas = developCut(v, zoom);
       const shot = { canvas, url: canvas.toDataURL("image/jpeg", 0.72) };
       taken.push(shot);
       setShots([...taken]);
@@ -129,7 +136,7 @@ export default function Interior({ leaving, onExit, onDone }: Props) {
       setPicked([]);
       setPhase("pick");
     } catch {
-      if (run.current === id) setNote("사진을 열 수 없어요. 다른 사진으로 해 보세요");
+      if (run.current === id) setNote("could not open that photo. try another one");
     }
   }
 
@@ -147,16 +154,17 @@ export default function Interior({ leaving, onExit, onDone }: Props) {
     const id = ++run.current;
     setPhase("develop");
     try {
+      const date = new Date();
       const out = await composeStrip(
         picked.map((i) => shots[i].canvas),
         frame,
-        new Date(),
+        date,
       );
       if (run.current !== id) return;
-      onDone({ ...out, frame: frame.key });
+      onDone({ ...out, frame: frame.key, shots, picked, date });
     } catch {
       if (run.current !== id) return;
-      setNote("인화에 실패했어요. 다시 해 주세요");
+      setNote("printing failed. please try again");
       setPhase("pick");
     }
   }
@@ -177,32 +185,32 @@ export default function Interior({ leaving, onExit, onDone }: Props) {
       <div className={css.cam} data-hidden={picking}>
         {/* 벽에 뚫린 구멍 속 카메라 렌즈 */}
         <div className={css.lensRow} aria-hidden="true">
-          <span>LOOK</span>
+          <span>look</span>
           <div className={css.lens}>
             <i />
           </div>
-          <span>HERE</span>
+          <span>here</span>
         </div>
 
         <div className={css.stage}>
           <div className={css.bezel}>
             <div className={css.glass}>
-              <video ref={videoRef} className={css.video} playsInline muted autoPlay data-on={camReady && !still} />
+              <video ref={videoRef} className={css.video} playsInline muted autoPlay data-on={camReady && !still} style={{ transform: `scale(${-zoom}, ${zoom})` }} />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {still && <img className={css.still} src={still} alt="" />}
-              {camState === "starting" && <p className={css.msg}>카메라 켜는 중…</p>}
+              {camState === "starting" && <p className={css.msg}>starting camera…</p>}
               {camBroken && (
                 <div className={css.broken}>
                   <p>{camError}</p>
-                  <button onClick={() => void startCam()}>다시 시도</button>
-                  <button onClick={() => fileRef.current?.click()}>사진 불러오기</button>
+                  <button onClick={() => void startCam()}>try again</button>
+                  <button onClick={() => fileRef.current?.click()}>upload photos</button>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        <div className={css.dots} aria-label={`${SHOTS}장 중 ${shots.length}장 찍음`}>
+        <div className={css.dots} aria-label={`${shots.length} of ${SHOTS} shots taken`}>
           {Array.from({ length: SHOTS }, (_, i) => (
             <i key={i} data-on={i < shots.length} />
           ))}
@@ -225,10 +233,10 @@ export default function Interior({ leaving, onExit, onDone }: Props) {
 
       {picking && (
         <div className={css.pick}>
-          <div className={css.seg} role="tablist" aria-label="프레임">
+          <div className={css.seg} role="tablist" aria-label="layout">
             {FRAMES.map((f) => (
               <button key={f.key} role="tab" aria-selected={f.key === frame.key} data-on={f.key === frame.key} onClick={() => chooseFrame(f)}>
-                {f.count} cuts
+                {f.count} {f.count === 1 ? "cut" : "cuts"}
               </button>
             ))}
           </div>
@@ -241,7 +249,7 @@ export default function Interior({ leaving, onExit, onDone }: Props) {
             {shots.map((s, i) => {
               const at = picked.indexOf(i);
               return (
-                <button key={i} className={css.thumb} data-on={at >= 0} data-dim={at < 0 && need === 0} onClick={() => toggle(i)} aria-label={`${i + 1}번 사진${at >= 0 ? `, ${at + 1}번째 칸에 넣음` : ""}`}>
+                <button key={i} className={css.thumb} data-on={at >= 0} data-dim={at < 0 && need === 0} onClick={() => toggle(i)} aria-label={`photo ${i + 1}${at >= 0 ? `, placed in slot ${at + 1}` : ""}`}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={s.url} alt="" />
                   {at >= 0 && <b>{at + 1}</b>}

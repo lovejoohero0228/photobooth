@@ -7,19 +7,24 @@ export interface Frame {
   key: string;
   name: string;
   count: number;
+  /** 저장 이미지(3:4 배경) 안에서 사진이 차지할 수 있는 최대 크기(px, 1080×1440 기준).
+   *  컷이 적을수록 작게 가운데에 놓여 배경 여백이 넓어진다 */
+  story: { w: number; h: number };
 }
 
 export const FRAMES: Frame[] = [
-  { key: "two", name: "두 컷", count: 2 },
-  { key: "three", name: "세 컷", count: 3 },
-  { key: "four", name: "네 컷", count: 4 },
+  // 1컷: 3×3으로 나눈 격자의 가운데 칸만큼
+  { key: "one", name: "one", count: 1, story: { w: 360, h: 480 } },
+  { key: "two", name: "two", count: 2, story: { w: 640, h: 800 } },
+  { key: "three", name: "three", count: 3, story: { w: 640, h: 1100 } },
+  { key: "four", name: "four", count: 4, story: { w: 640, h: 1240 } },
 ];
 
-export const getFrame = (key: string) => FRAMES.find((f) => f.key === key) ?? FRAMES[2];
+export const getFrame = (key: string) => FRAMES.find((f) => f.key === key) ?? FRAMES[FRAMES.length - 1];
 
-const PAD = 0.065;
-const GAP = 0.045;
-const FOOT = 0.15;
+const PAD = 0.02;
+const GAP = 0.014;
+const FOOT = 0.055;
 
 export interface FrameGeometry {
   w: number;

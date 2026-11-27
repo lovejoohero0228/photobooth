@@ -7,7 +7,6 @@ import css from "./Delivery.module.css";
 import { BACKDROPS, composeBackdrop, composeStory, saveImage, shareBlob, stripFilename, type Backdrop } from "@/lib/develop";
 import { detectInApp } from "@/lib/env";
 import { PRINT_SECS } from "@/lib/config";
-import { playClick, playDispense, playHum, playPaper } from "@/lib/sound";
 
 type Phase = "wait" | "drop" | "rest" | "held";
 
@@ -45,7 +44,6 @@ export default function Delivery({ url, blob, w, h, leaving, onAgain }: Props) {
     const s = Math.min(Math.min(vw * 0.78, 400) / r.width, (vh - 270) / r.height);
     const dx = vw / 2 - (r.left + r.width / 2);
     const dy = (vh - 215) / 2 + 6 - (r.top + r.height / 2);
-    playPaper();
     setHeld(`translate(${dx}px, ${dy}px) scale(${s}) rotate(-2deg)`);
     setPhase("held");
   }, []);
@@ -53,11 +51,9 @@ export default function Delivery({ url, blob, w, h, leaving, onAgain }: Props) {
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
     const at = (ms: number, fn: () => void) => timers.push(setTimeout(fn, ms));
-    playHum(PRINT_SECS);
     const t0 = PRINT_SECS * 1000 + 200;
     at(t0, () => {
       setPhase("drop");
-      playDispense(DROP_MS / 1000 - 0.1);
     });
     at(t0 + DROP_MS, () => setPhase("rest"));
     at(t0 + DROP_MS + REST_MS, pick);
@@ -70,7 +66,6 @@ export default function Delivery({ url, blob, w, h, leaving, onAgain }: Props) {
 
   /** 사진은 그대로, 뒤 배경만 바꾼다 */
   async function choose(key: Backdrop | null) {
-    playClick();
     setHint(null);
     setBackdrop(key);
     if (!key) return;
@@ -99,7 +94,6 @@ export default function Delivery({ url, blob, w, h, leaving, onAgain }: Props) {
   }
 
   async function run(kind: "save" | "share") {
-    playClick();
     setBusy(true);
     try {
       const o = await output();

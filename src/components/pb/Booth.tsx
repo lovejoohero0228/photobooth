@@ -8,7 +8,6 @@ import Delivery from "./Delivery";
 import Album from "./Album";
 import InAppNotice from "@/components/InAppNotice";
 import { listStrips, saveStrip, stripBlob } from "@/lib/strips";
-import { isMuted, playCurtain, setMuted, unlockAudio } from "@/lib/sound";
 
 type View = "outside" | "inside" | "delivery";
 
@@ -28,7 +27,6 @@ export default function Booth() {
   const [latest, setLatest] = useState<string | undefined>();
   const [total, setTotal] = useState(0);
   const [album, setAlbum] = useState(false);
-  const [muted, setMute] = useState(false);
   const latestUrl = useRef<string | undefined>(undefined);
 
   const refresh = useCallback(async () => {
@@ -43,7 +41,6 @@ export default function Booth() {
 
   useEffect(() => {
     void Promise.resolve().then(() => {
-      setMute(isMuted());
       void refresh();
     });
   }, [refresh]);
@@ -55,8 +52,6 @@ export default function Booth() {
   }
 
   function enter() {
-    unlockAudio();
-    playCurtain();
     setCurtain(true);
     setTimeout(() => go("inside"), CURTAIN_MS);
     setTimeout(() => setCurtain(false), CURTAIN_MS + CROSS_MS);
@@ -85,21 +80,6 @@ export default function Booth() {
       {show("outside") && <Exterior open={curtain || leaving === "outside"} out={leaving === "outside"} latest={latest} total={total} onEnter={enter} onAlbum={() => setAlbum(true)} />}
       {show("inside") && <Interior leaving={leaving === "inside"} onExit={() => go("outside")} onDone={done} />}
       {show("delivery") && result && <Delivery url={result.url} blob={result.full} w={result.w} h={result.h} leaving={leaving === "delivery"} onAgain={again} />}
-
-      {view === "outside" && !leaving && (
-        <button
-          onClick={() => {
-            const m = !muted;
-            setMuted(m);
-            setMute(m);
-            if (!m) unlockAudio();
-          }}
-          aria-label={muted ? "소리 켜기" : "소리 끄기"}
-          style={{ position: "fixed", top: "calc(8px + var(--safe-t))", right: 6, width: 44, height: 44, fontSize: 18, opacity: muted ? 0.3 : 0.55, textDecoration: muted ? "line-through" : "none", zIndex: 10 }}
-        >
-          ♪
-        </button>
-      )}
 
       {album && <Album onClose={() => setAlbum(false)} onChanged={refresh} />}
       <InAppNotice />

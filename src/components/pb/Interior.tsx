@@ -7,7 +7,6 @@ import { FRAMES, frameGeometry, type Frame } from "@/lib/frames";
 import { composeStrip, developCut, loadImage, type Developed } from "@/lib/develop";
 import { useCamera } from "@/components/camera/useCamera";
 import { COUNT_FROM, COUNT_MS, SHOTS, STILL_MS } from "@/lib/config";
-import { playClick, playShutter } from "@/lib/sound";
 
 type Phase = "camera" | "shooting" | "pick" | "develop";
 
@@ -90,7 +89,6 @@ export default function Interior({ leaving, onExit, onDone }: Props) {
   async function shoot() {
     const v = videoRef.current;
     if (!v || camState !== "ready") return;
-    playClick();
     const id = ++run.current;
     setPhase("shooting");
     const taken: Shot[] = [];
@@ -101,7 +99,6 @@ export default function Interior({ leaving, onExit, onDone }: Props) {
         if (run.current !== id) return;
       }
       setCount(null);
-      playShutter();
       setFlash((f) => f + 1);
       const canvas = developCut(v);
       const shot = { canvas, url: canvas.toDataURL("image/jpeg", 0.72) };
@@ -137,19 +134,16 @@ export default function Interior({ leaving, onExit, onDone }: Props) {
   }
 
   function toggle(i: number) {
-    playClick();
     setPicked((p) => (p.includes(i) ? p.filter((x) => x !== i) : p.length < frame.count ? [...p, i] : p));
   }
 
   function chooseFrame(f: Frame) {
-    playClick();
     setFrameKey(f.key);
     setPicked((p) => p.slice(0, f.count));
   }
 
   async function finish() {
     if (Math.min(frame.count, shots.length) !== picked.length) return;
-    playClick();
     const id = ++run.current;
     setPhase("develop");
     try {

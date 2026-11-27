@@ -181,10 +181,10 @@ export default function Delivery({ url, blob, w, h, leaving, onAgain }: Props) {
           </div>
           <div className={css.pair}>
             <button className={css.act} data-main="true" disabled={busy} onClick={() => void run("save")}>
-              Save
+              save
             </button>
             <button className={css.act} disabled={busy} onClick={() => void run("share")}>
-              Share
+              share
             </button>
           </div>
           <button className={css.again} onClick={onAgain}>

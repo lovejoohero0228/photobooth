@@ -384,22 +384,21 @@
   gap: 10px;
   width: min(100%, 320px);
 }
+/* 프레임 없는 글자 버튼. 주 버튼(save)만 금색 */
 .act {
   min-height: 52px;
-  border: 1px solid rgba(217, 191, 114, 0.7);
-  border-radius: 2px;
+  border: 0;
+  background: none;
   color: #f3e9d0;
   font-size: 15.5px;
   letter-spacing: 0.14em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
   transition:
     transform 0.07s,
-    background 0.15s,
     opacity 0.2s;
 }
 .act[data-main="true"] {
-  background: #d9bf72;
-  border-color: #d9bf72;
-  color: #17120a;
+  color: #d9bf72;
   font-weight: 700;
 }
 .act:disabled {

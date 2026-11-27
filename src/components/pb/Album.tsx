@@ -105,10 +105,10 @@ export default function Album({ onClose, onChanged }: { onClose: () => void; onC
             {hint && <p className={css.hint}>{hint}</p>}
             <div className={css.btns}>
               <button className="f-title" data-main="true" onClick={save}>
-                Save
+                save
               </button>
               <button className="f-title" onClick={share}>
-                Share
+                share
               </button>
               <button className="f-title" data-warn={confirm} onClick={remove}>
                 {confirm ? "정말 지워요" : "삭제"}

@@ -326,7 +326,7 @@
   left: 136px;
   top: 10px;
   width: 140px;
-  height: 440px;
+  height: 448px;
   /* 크롬 문틀 */
   border: 5px solid;
   border-image: linear-gradient(100deg, #5a5f65 0%, #f6f7f8 22%, #a4a9af 45%, #eceef0 63%, #555a60 82%, #c2c6cb 100%) 1;
@@ -370,7 +370,7 @@
   left: 0;
   right: 0;
   top: 388px;
-  height: 44px;
+  height: 52px;
   perspective: 120px;
   perspective-origin: 50% 0%;
   overflow: hidden;
@@ -661,7 +661,7 @@
   left: 152px;
   top: 157px;
   width: 140px;
-  height: 440px;
+  height: 448px;
 }
 .hitSlot {
   left: 52px;

@@ -90,12 +90,12 @@ function cssFont(name: string, fallback: string) {
   return v ? `${v}, ${fallback}` : fallback;
 }
 
-/** 자간을 넓힌 가운데 정렬 글자 (ctx.letterSpacing은 구형 Safari에 없다) */
-function spaced(ctx: CanvasRenderingContext2D, text: string, cx: number, y: number, tracking: number) {
+/** 자간을 넓힌 글자 (ctx.letterSpacing은 구형 Safari에 없다) */
+function spaced(ctx: CanvasRenderingContext2D, text: string, ax: number, y: number, tracking: number, align: "center" | "right" = "center") {
   const chars = [...text];
   const widths = chars.map((ch) => ctx.measureText(ch).width);
   const total = widths.reduce((a, b) => a + b, 0) + tracking * (chars.length - 1);
-  let x = cx - total / 2;
+  let x = align === "right" ? ax - total : ax - total / 2;
   ctx.textAlign = "left";
   chars.forEach((ch, i) => {
     ctx.fillText(ch, x, y);
@@ -141,7 +141,7 @@ export async function composeStrip(cuts: HTMLCanvasElement[], frame: Frame, date
     if (cut) ctx.drawImage(cut, Math.round(cell.x * u), Math.round(cell.y * u), Math.round(cell.w * u), Math.round(cell.h * u));
   });
 
-  // 아래 여백에 작게 찍힌 날짜
+  // 아래 여백에 작게 찍힌 날짜: 사진 오른쪽 끝에 맞춘다
   const font = cssFont("--font-en", "sans-serif");
   try {
     await document.fonts.load(`500 ${Math.round(u * 0.05)}px ${font}`);
@@ -150,7 +150,7 @@ export async function composeStrip(cuts: HTMLCanvasElement[], frame: Frame, date
   ctx.textBaseline = "middle";
   ctx.font = `500 ${Math.round(u * 0.05)}px ${font}`;
   const ymd = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
-  spaced(ctx, `photos  ${ymd}`, c.width / 2, (g.footY + g.footH * 0.52) * u, u * 0.012);
+  spaced(ctx, ymd, c.width - g.cells[0].x * u, (g.footY + g.footH * 0.52) * u, u * 0.012, "right");
 
   // 인화지 결
   ctx.fillStyle = ctx.createPattern(noiseTile(12), "repeat")!;

@@ -14,9 +14,22 @@ npm run dev -- -p 3123
 1. 밖: 커튼(enter)을 누르면 커튼이 걷히고 문 안으로 들어간다. 사진을 찍은 뒤에는 배출구에 최근 사진이 꽂혀 보이고, 누르면 보관함이 열린다.
 2. 부스 안: 바로 카메라가 켜진다. "start shooting"을 누르면 그 자리에서 3부터 1까지 세고 찍기를 6번 반복한다.
 3. 고르기: 2·3·4컷 중 프레임을 고르고 넣을 사진을 고른 뒤 print.
-4. 배출구: 2초 뒤 사진이 내려와 놓이고 곧 화면 가운데로 커진다. 사진만(Plain), 또는 `public/bg/`의 사진 배경(목록은 `src/lib/develop.ts`의 `BACKDROPS`)을 깔아 9:16으로 저장·공유한다.
+4. 배출구: 2초 뒤 사진이 내려와 놓이고 곧 화면 가운데로 커진다. 사진만(Plain), 또는 `public/bg/`의 사진 배경(목록은 `src/lib/develop.ts`의 `BACKDROPS`)을 깔아 3:4으로 저장·공유한다.
 
 촬영 장수, 카운트다운, 인화 대기 시간은 `src/lib/config.ts`에서 바꾼다. 폰트는 영문 Google Sans, 한글 Monoplex KR(`src/app/fonts/`).
+
+## 같은 와이파이의 휴대폰에서 테스트
+
+카메라는 HTTPS에서만 동작하므로 자체 서명 인증서로 띄운다. 최초 1회 인증서를 만든다(IP는 내 PC의 사설 IP로):
+
+```bash
+mkdir -p certificates
+openssl req -x509 -newkey rsa:2048 -nodes -days 30 -keyout certificates/lan-key.pem -out certificates/lan-cert.pem \
+  -subj "/CN=photobooth-lan" -addext "subjectAltName=IP:<내 PC IP>,DNS:localhost,IP:127.0.0.1"
+npm run dev:lan
+```
+
+휴대폰 브라우저에서 `https://<내 PC IP>:3123` 을 열고, 인증서 경고는 "고급 → 계속 진행"으로 넘긴다. `certificates/`는 git에 올라가지 않는다.
 
 ## 휴대폰에서 테스트
 

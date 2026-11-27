@@ -54,7 +54,9 @@ export default function Exterior({ open, out, latest, total, onEnter, onAlbum }:
           <div className={css.fascia} />
           <div className={css.bulbs}>
             {Array.from({ length: BULBS }, (_, i) => (
-              <i key={i} data-odd={i % 2 === 1} />
+              <i key={i} data-odd={i % 2 === 1}>
+                <b />
+              </i>
             ))}
           </div>
 
@@ -68,12 +70,10 @@ export default function Exterior({ open, out, latest, total, onEnter, onAlbum }:
               <i />
               <i />
               <i />
-              <span>
-                PHOTOS
-                <br />
-                DELIVERED
-                <br />
-                HERE
+              <span className={css.txt}>
+                <em>PHOTOS</em>
+                <em>DELIVERED</em>
+                <em>HERE</em>
               </span>
             </div>
 

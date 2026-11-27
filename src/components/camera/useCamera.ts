@@ -29,10 +29,28 @@ export function useCamera() {
     setState("starting");
     try {
       stop();
-      const stream = await navigator.mediaDevices.getUserMedia({
+      let stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 960 } },
         audio: false,
       });
+      // 전면 카메라가 여러 개(예: 광각 + 일반)로 보이는 기기라면 광각이 아닌 쪽을 고른다
+      if (window.matchMedia?.("(pointer: coarse)").matches) {
+        try {
+          const cams = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "videoinput" && /front|user|전면/i.test(d.label));
+          const normal = cams.find((d) => !/ultra|wide|광각/i.test(d.label));
+          const current = stream.getVideoTracks()[0]?.getSettings().deviceId;
+          if (cams.length > 1 && normal && normal.deviceId !== current) {
+            const next = await navigator.mediaDevices.getUserMedia({
+              video: { deviceId: { exact: normal.deviceId }, width: { ideal: 1280 }, height: { ideal: 960 } },
+              audio: false,
+            });
+            stream.getTracks().forEach((t) => t.stop());
+            stream = next;
+          }
+        } catch {
+          // 고를 수 없으면 기본 전면 카메라를 그대로 쓴다
+        }
+      }
       streamRef.current = stream;
       // 휴대폰 전면 카메라는 광각이라 일반 배율로 맞춘다. 기기가 광학/하드웨어 줌을 주면 그걸 쓰고, 아니면 디지털로 확대한다
       let dz = 1;

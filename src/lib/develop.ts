@@ -200,20 +200,19 @@ export interface BackdropDef {
 }
 const bg = (key: string, name: string): BackdropDef => ({ key, name, src: `/bg/${key}.jpeg` });
 export const BACKDROPS: BackdropDef[] = [
+  bg("blue-stars", "sky stars"),
+  bg("cream-wrinkled-dots", "wrinkle"),
+  bg("pink-knit", "knit"),
+  bg("orange-linen", "orange"),
   bg("green-cross", "cross"),
   bg("navy-dots", "navy"),
-  bg("navy-lace", "lace"),
-  bg("lace-black-dots", "lace dots"),
   bg("red-pink-stripes", "candy"),
-  bg("blue-swirl", "swirl"),
   bg("black-cream-dots", "polka"),
-  bg("blue-stars", "sky stars"),
+  bg("blue-swirl", "swirl"),
   bg("purple-dots", "purple"),
-  bg("cream-wrinkled-dots", "wrinkle"),
   bg("wine-velvet", "wine"),
-  bg("orange-linen", "orange"),
   bg("dusty-blue", "dusty"),
-  bg("pink-knit", "knit"),
+  bg("navy-lace", "lace"),
 ];
 export type Backdrop = string;
 

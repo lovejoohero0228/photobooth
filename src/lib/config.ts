@@ -15,4 +15,4 @@ export const STILL_MS = 700;
 /** 인화 대기(초) */
 export const PRINT_SECS = 1;
 /** 휴대폰 전면 카메라는 광각이라, 일반 배율처럼 보이도록 확대하는 배율 */
-export const MOBILE_CAMERA_ZOOM = 1.3;
+export const MOBILE_CAMERA_ZOOM = 1.5;

@@ -174,56 +174,100 @@
   left: 8px;
   top: 133px;
   width: 344px;
-  height: 20px;
+  height: 24px;
   display: flex;
   justify-content: space-around;
   z-index: 3;
 }
-/* 소켓 */
+/* 전선 */
+.bulbs::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1px;
+  height: 2px;
+  background: linear-gradient(180deg, #000 0%, #2a2623 60%, #0b0a09 100%);
+}
+/* 소켓: 가로 홈이 있는 황동 */
 .bulbs i {
   position: relative;
-  width: 6px;
-  height: 5px;
-  border-radius: 0 0 1px 1px;
-  background: linear-gradient(90deg, #4d3c14, #c9a85a 45%, #6b5420);
+  width: 7px;
+  height: 7px;
+  border-radius: 0 0 1.5px 1.5px;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0 0.7px, transparent 0.7px 1.8px),
+    linear-gradient(90deg, #3b2e0f, #d7b866 38%, #fff0b8 50%, #8a6c2a 74%, #3b2e0f);
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.7),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
 }
-/* 유리알 */
+/* 번져 나오는 빛: 가볍게 opacity만 움직인다 */
+.bulbs i::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 16px;
+  width: 54px;
+  height: 54px;
+  margin: -27px 0 0 -27px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 196, 110, 0.5) 0%, rgba(255, 170, 80, 0.2) 36%, transparent 70%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: twinkle 1.5s ease-in-out infinite;
+}
+/* 유리알: 가운데는 하얗게 달아오르고 가장자리는 호박색 */
 .bulbs i::after {
   content: "";
   position: absolute;
   left: -3.5px;
-  top: 3.5px;
-  width: 13px;
-  height: 14px;
-  border-radius: 50% 50% 50% 50% / 42% 42% 58% 58%;
-  background: radial-gradient(circle at 50% 46%, #fffdf4 0%, #fff1c9 26%, #ffcf78 58%, #e5a03c 100%);
+  top: 5px;
+  width: 14px;
+  height: 17px;
+  border-radius: 50% 50% 50% 50% / 38% 38% 62% 62%;
+  background:
+    /* 유리에 비친 창 모양 하이라이트 */
+    radial-gradient(ellipse 22% 16% at 30% 24%, rgba(255, 255, 255, 0.95) 0 40%, transparent 100%),
+    radial-gradient(ellipse 60% 55% at 50% 56%, #fffef6 0%, #fff0c4 30%, #ffc766 66%, #d98a2b 100%);
   box-shadow:
-    0 0 7px 3px rgba(255, 208, 130, 0.8),
-    0 0 20px 8px rgba(255, 176, 80, 0.32);
+    inset 0 -2px 3px rgba(190, 100, 20, 0.55),
+    0 0 6px 1px rgba(255, 205, 120, 0.85),
+    0 0 14px 4px rgba(255, 170, 70, 0.35);
   animation: twinkle 1.5s ease-in-out infinite;
 }
-.bulbs i[data-odd="true"]::after {
+/* 필라멘트 */
+.bulbs i b {
+  left: 50%;
+  top: 9px;
+  width: 4px;
+  height: 8px;
+  margin-left: -2px;
+  z-index: 1;
+  background:
+    repeating-linear-gradient(180deg, #fff 0 0.8px, #ffd27a 0.8px 1.6px);
+  opacity: 0.95;
+  filter: blur(0.3px);
+  box-shadow: 0 0 3px 0.5px rgba(255, 240, 200, 0.9);
+  animation: twinkle 1.5s ease-in-out infinite;
+}
+/* 하나 걸러 하나씩 번갈아 켜지고 꺼진다 (opacity만 움직여 모바일에서도 가볍다) */
+.bulbs i[data-odd="true"]::before,
+.bulbs i[data-odd="true"]::after,
+.bulbs i[data-odd="true"] b {
   animation-delay: -0.75s;
 }
-/* 꺼진 전구는 유리알만 어렴풋이 */
 @keyframes twinkle {
   0%,
   38% {
-    filter: none;
-    box-shadow:
-      0 0 7px 3px rgba(255, 208, 130, 0.8),
-      0 0 20px 8px rgba(255, 176, 80, 0.32);
+    opacity: 1;
   }
   50%,
   88% {
-    filter: brightness(0.34) saturate(0.5);
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
+    opacity: 0.18;
   }
   100% {
-    filter: none;
-    box-shadow:
-      0 0 7px 3px rgba(255, 208, 130, 0.8),
-      0 0 20px 8px rgba(255, 176, 80, 0.32);
+    opacity: 1;
   }
 }
 
@@ -289,15 +333,30 @@
     0 0 0 0.5px rgba(0, 0, 0, 0.55),
     0 2px 3px rgba(0, 0, 0, 0.55);
 }
-.plate span {
+/* 글자는 크게 그린 뒤 줄여 쓴다: 모바일 브라우저의 최소 글자 크기 제한을 피한다.
+   줄바꿈은 <br> 대신 세 줄 블록으로 (.art * 규칙 때문에 br이 absolute가 되어 한 줄로 이어졌다) */
+.plate .txt {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 150px;
+  transform: translate(-50%, -50%) scale(0.285);
+  transform-origin: 50% 50%;
+  display: grid;
+  justify-items: center;
+}
+.plate .txt em {
   position: static;
+  display: block;
+  font-style: normal;
   color: #141516;
   font-weight: 700;
-  font-size: 4.1px;
+  font-size: 14.4px;
   line-height: 1.25;
   letter-spacing: 0.06em;
+  white-space: nowrap;
   text-align: center;
-  text-shadow: 0 0.5px 0 rgba(255, 255, 255, 0.75);
+  text-shadow: 0 1.5px 0 rgba(255, 255, 255, 0.75);
 }
 /* 십자 나사 */
 .plate i {
@@ -671,21 +730,45 @@
   line-height: 1;
 }
 
-/* ── 황동 밑판 */
+/* ── 크롬 밑판: 문틀·배출구와 같은 거울 크롬. 더 높게 올려 붙인다 */
 .kick {
-  top: 428px;
-  height: 30px;
+  top: 392px;
+  height: 66px;
   background:
-    var(--tex-brush-sd),
+    /* 위쪽 모서리 하이라이트, 아래로 내려갈수록 어두워지는 반사 */
+    linear-gradient(180deg, rgba(255, 255, 255, 0.75) 0, rgba(255, 255, 255, 0.08) 6%, transparent 18%, transparent 62%, rgba(0, 0, 0, 0.38) 100%),
     var(--tex-brush-s),
-    linear-gradient(180deg, #d9c68c 0%, #9c8340 12%, #766128 55%, #a08a4a 80%, #564518 100%);
+    linear-gradient(100deg, #5a5f65 0%, #f6f7f8 14%, #a4a9af 30%, #eceef0 46%, #7b8087 60%, #f2f3f5 74%, #555a60 88%, #c2c6cb 100%);
   background-size:
-    130px 40px,
+    auto,
     150px 50px,
     auto;
   box-shadow:
-    inset 0 1px 0 rgba(255, 250, 220, 0.8),
-    0 -1px 2px rgba(0, 0, 0, 0.5);
+    inset 0 1px 0 #fff,
+    inset 0 -2px 2px rgba(0, 0, 0, 0.5),
+    0 -2px 4px rgba(0, 0, 0, 0.55),
+    0 -1px 0 rgba(0, 0, 0, 0.7);
+}
+/* 나사 두 개 */
+.kick::before,
+.kick::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background:
+    linear-gradient(transparent 42%, rgba(0, 0, 0, 0.6) 42% 58%, transparent 58%),
+    linear-gradient(90deg, transparent 42%, rgba(0, 0, 0, 0.6) 42% 58%, transparent 58%),
+    radial-gradient(circle at 35% 30%, #fff 0%, #b3b8be 45%, #5d6269 100%);
+  box-shadow: 0 1px 1.5px rgba(0, 0, 0, 0.7);
+}
+.kick::before {
+  left: 7px;
+}
+.kick::after {
+  right: 7px;
 }
 
 /* ── 들어가기: 문 안으로 줌 */

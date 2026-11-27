@@ -139,9 +139,11 @@
 /* 원목 액자: 공통 나무 질감 + 깎은 모서리의 빛과 그늘 + 유리 안쪽의 홈 */
 .bezel {
   position: relative;
-  width: 100%;
-  max-width: calc((100dvh - 470px) * 0.8);
-  min-width: 220px;
+  /* content-box: 4:5 비율이 액자 안쪽(영상 자리)에 걸려, 찍히는 컷과 미리보기가 정확히 같은 모양이 된다 */
+  box-sizing: content-box;
+  width: calc(100% - 24px);
+  max-width: calc((100dvh - 470px) * 0.8 - 24px);
+  min-width: 196px;
   aspect-ratio: 4 / 5;
   padding: 12px;
   background:
@@ -176,11 +178,14 @@
     inset 0 0 0 1px rgba(255, 225, 180, 0.12);
 }
 .glass {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  /* 액자(패딩 12px) 안쪽을 정확히 채운다. width/height 100%는 일부 모바일 브라우저에서 높이가 어긋났다 */
+  position: absolute;
+  inset: 12px;
   background: #0b0a09;
   overflow: hidden;
+  /* 확대한 영상이 나무 프레임 밖으로 새지 않도록 (iOS Safari) */
+  clip-path: inset(0);
+  isolation: isolate;
   box-shadow:
     0 0 0 1px #000,
     0 0 0 2px rgba(0, 0, 0, 0.4),

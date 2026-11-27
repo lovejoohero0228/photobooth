@@ -26,10 +26,10 @@ export function externalOpenUrl(kind: InAppKind, href = typeof location !== "und
 }
 
 export const IN_APP_LABEL: Record<Exclude<InAppKind, null>, string> = {
-  instagram: "인스타그램",
-  facebook: "페이스북",
-  kakaotalk: "카카오톡",
-  naver: "네이버",
-  line: "라인",
-  threads: "스레드",
+  instagram: "instagram",
+  facebook: "facebook",
+  kakaotalk: "kakaotalk",
+  naver: "naver",
+  line: "line",
+  threads: "threads",
 };

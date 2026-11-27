@@ -32,15 +32,15 @@ export default function InAppNotice() {
         boxShadow: "0 2px 10px rgba(0,0,0,.3)",
       }}
     >
-      {IN_APP_LABEL[kind]} 안에서는 카메라나 저장이 막힐 수 있어요.{" "}
+      camera or saving may be blocked inside {IN_APP_LABEL[kind]}.{" "}
       {ext ? (
         <a href={ext} style={{ fontWeight: 700, textDecoration: "underline" }}>
-          {isIOS() ? "Safari" : "Chrome"}로 열기
+          open in {isIOS() ? "safari" : "chrome"}
         </a>
       ) : (
-        <b>오른쪽 위 ⋯ 메뉴 → &lsquo;외부 브라우저로 열기&rsquo;</b>
+        <b>tap ⋯ at the top right → &lsquo;open in browser&rsquo;</b>
       )}
-      <button aria-label="안내 닫기" onClick={() => setClosed(true)} style={{ position: "absolute", right: 6, top: 4, width: 36, height: 36, fontSize: 18 }}>
+      <button aria-label="dismiss" onClick={() => setClosed(true)} style={{ position: "absolute", right: 6, top: 4, width: 36, height: 36, fontSize: 18 }}>
         ×
       </button>
     </div>

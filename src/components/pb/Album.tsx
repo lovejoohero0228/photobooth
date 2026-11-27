@@ -66,20 +66,20 @@ export default function Album({ onClose, onChanged }: { onClose: () => void; onC
   async function save() {
     if (!open) return;
     const r = await saveImage(open.blob, stripFilename(new Date(open.item.createdAt)), detectInApp() !== null);
-    setHint(r === "longpress" ? "사진을 길게 눌러 ‘이미지 저장’을 고르세요" : null);
+    setHint(r === "longpress" ? "press and hold the photo and choose ‘save image’" : null);
   }
   async function share() {
     if (!open) return;
     const ok = await shareBlob(open.blob, stripFilename(new Date(open.item.createdAt)));
-    setHint(ok ? null : "이 브라우저에선 공유가 안 돼요. 길게 눌러 저장한 뒤 올려 주세요");
+    setHint(ok ? null : "sharing is not supported in this browser. press and hold to save, then upload");
   }
 
   return (
-    <div className={css.root} role="dialog" aria-label="내 사진">
+    <div className={css.root} role="dialog" aria-label="my photos">
       <header className={css.head}>
-        <h2 className="f-title">내 사진{items?.length ? ` ${items.length}장` : ""}</h2>
-        <button onClick={onClose} aria-label="닫기">
-          닫기 ✕
+        <h2 className="f-title">my photos{items?.length ? ` · ${items.length}` : ""}</h2>
+        <button onClick={onClose} aria-label="close">
+          close ✕
         </button>
       </header>
 
@@ -87,17 +87,17 @@ export default function Album({ onClose, onChanged }: { onClose: () => void; onC
         {items?.map((it, i) => (
           <button key={it.id} className={css.cell} style={{ rotate: `${((i * 37) % 7) - 3}deg`, animationDelay: `${Math.min(i, 12) * 35}ms` }} onClick={() => view(it)}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={it.thumb} alt={`${new Date(it.createdAt).toLocaleDateString("ko-KR")}에 찍은 사진`} style={{ aspectRatio: `${it.w} / ${it.h}` }} />
+            <img src={it.thumb} alt={`photo taken on ${new Date(it.createdAt).toLocaleDateString("en-US")}`} style={{ aspectRatio: `${it.w} / ${it.h}` }} />
           </button>
         ))}
-        {items?.length === 0 && <p className={css.empty}>아직 찍은 사진이 없어요</p>}
+        {items?.length === 0 && <p className={css.empty}>no photos yet</p>}
       </div>
-      <p className={css.foot}>이 기기 안에만 있어요. 브라우저 데이터를 지우면 함께 사라져요.</p>
+      <p className={css.foot}>stored only on this device. clearing browser data deletes them.</p>
 
       {open && (
         <div className={css.view}>
           <button className={css.viewClose} onClick={closeView}>
-            ← 목록
+            ← all photos
           </button>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={open.url} alt="" style={{ aspectRatio: `${open.item.w} / ${open.item.h}` }} />
@@ -111,7 +111,7 @@ export default function Album({ onClose, onChanged }: { onClose: () => void; onC
                 share
               </button>
               <button className="f-title" data-warn={confirm} onClick={remove}>
-                {confirm ? "정말 지워요" : "삭제"}
+                {confirm ? "tap again to delete" : "delete"}
               </button>
             </div>
           </div>

@@ -17,8 +17,8 @@ const ko = localFont({
 
 export const metadata: Metadata = {
   title: "Photos",
-  description: "커튼을 열고 들어가 찍는 흑백 포토부스. 사진은 내 기기에만 남아요.",
-  openGraph: { title: "Photos", description: "커튼을 열고 들어가 찍는 흑백 포토부스" },
+  description: "step behind the curtain for a black-and-white photobooth. photos stay on your device.",
+  openGraph: { title: "Photos", description: "step behind the curtain for a black-and-white photobooth" },
 };
 
 export const viewport: Viewport = {
@@ -30,7 +30,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko" className={`${en.variable} ${ko.variable}`}>
+    <html lang="en" className={`${en.variable} ${ko.variable}`}>
       <body className="grain">{children}</body>
     </html>
   );

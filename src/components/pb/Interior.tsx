@@ -217,7 +217,7 @@ export default function Interior({ leaving, onExit, onDone }: Props) {
           ) : (
             <button className={css.start} disabled={!camReady} onClick={() => void shoot()}>
               <i />
-              촬영 시작하기
+              Start shooting
             </button>
           )}
         </div>

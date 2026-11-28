@@ -313,6 +313,7 @@
   place-items: center;
   align-self: center;
   min-height: 96px;
+  gap: 2px;
 }
 /* 프레임 없는 글자 버튼: 넓은 자간, 녹화 점 */
 .start {
@@ -351,6 +352,31 @@
 }
 .start:disabled {
   opacity: 0.35;
+}
+.now {
+  min-height: 44px;
+  padding: 0 18px;
+  font-size: 14.5px;
+  letter-spacing: 0.1em;
+  color: #d9bf72;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  transition: opacity 0.2s;
+}
+.now:disabled {
+  opacity: 0.3;
+}
+.now:not(:disabled):active {
+  opacity: 0.6;
+}
+.sample {
+  margin-top: 2px;
+  min-height: 36px;
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  color: rgba(243, 233, 208, 0.5);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: rgba(243, 233, 208, 0.25);
 }
 .count {
   display: grid;

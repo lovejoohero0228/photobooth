@@ -37,8 +37,8 @@ npm run dev -- -p 3123
 들어가면 바로 카메라가 켜집니다.
 
 - 화면 아래 `1.2x` / `1.5x`로 확대 배율을 고릅니다. 휴대폰 전면 카메라는 광각이라 확대 옵션을 뒀고, 고른 배율은 기기에 기억됩니다.
-- `start shooting`을 누르면 3, 2, 1을 세고 한 장씩, 총 6장을 연속으로 찍습니다.
-- 카메라를 쓸 수 없으면 `upload photos`로 사진을 불러올 수 있습니다.
+- `start shooting`을 누르면 5초를 세고 한 장씩, 총 6장을 연속으로 찍습니다. 기다리기 싫으면 `shoot now`로 바로 찍을 수 있습니다.
+- 카메라를 쓸 수 없으면 `upload photos`로 사진을 불러오거나, `or try with sample photos`로 샘플 컷 6장을 만들어 바로 뒷 단계로 갈 수 있습니다.
 
 <img src="docs/screenshots/02-inside.jpg" width="260" alt="부스 안 카메라 화면" /> <img src="docs/screenshots/03-countdown.jpg" width="260" alt="카운트다운" />
 
@@ -118,7 +118,7 @@ cloudflared tunnel --url http://localhost:3123
 | 배경 사진 추가·삭제 | `public/bg/`에 파일을 넣고 `src/lib/develop.ts`의 `BACKDROPS`에 한 줄 |
 | 나무 질감·색 (모든 화면 공통) | `src/app/globals.css`의 `--wood-boards` |
 
-톤 후보를 내 얼굴로 비교하려면 `/tone` 페이지를 여세요. 사진을 찍거나 불러오면 여러 톤을 나란히 보여 줍니다.
+`/tone` 페이지에서 노출·대비·색감과 뷰티 효과(피부 매끈하게, 빛번짐, 그늘 밝히기)를 슬라이더로 직접 만져 볼 수 있습니다. 사진을 찍거나 불러오면 원본과 결과가 나란히 보이고, `use on this device`를 누르면 그 기기의 부스가 그 값을 씁니다. 마음에 드는 값은 `copy values`로 복사해 `DEFAULT_TONE`에 옮겨 적으면 모두에게 적용됩니다.
 
 ## 구조
 

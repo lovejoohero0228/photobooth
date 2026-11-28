@@ -4,7 +4,10 @@
 import { useEffect, useRef, useState } from "react";
 import css from "./Interior.module.css";
 import { FRAMES, frameGeometry, getFrame, type Frame } from "@/lib/frames";
-import { composeStrip, developCut, loadImage, type Developed } from "@/lib/develop";
+import { composeStrip, developRaw, loadImage, rawCut, type Developed } from "@/lib/develop";
+import { prepareRaw, warmFaceModel } from "@/lib/face";
+import { getTone, hasFaceFx } from "@/lib/tone";
+import { makeSamplePhotos } from "@/lib/samples";
 import { useCamera } from "@/components/camera/useCamera";
 import { COUNT_FROM, COUNT_MS, SHOTS, STILL_MS, ZOOM_LEVELS } from "@/lib/config";
 
@@ -71,10 +74,15 @@ export default function Interior({ leaving, onExit, onDone, initial }: Props) {
   const frame = getFrame(frameKey);
   const run = useRef(0);
   const fileRef = useRef<HTMLInputElement>(null);
+  /** 카운트다운을 건너뛰고 지금 찍기 */
+  const skipRef = useRef<(() => void) | null>(null);
 
   // 들어오자마자 카메라를 켠다
   useEffect(() => {
     if (!initial) void Promise.resolve().then(startCam);
+    // 얼굴 보정이 켜져 있으면 모델을 미리 읽어 둔다
+    const t = getTone();
+    if (hasFaceFx(t)) warmFaceModel();
     return () => {
       run.current++;
     };
@@ -92,7 +100,7 @@ export default function Interior({ leaving, onExit, onDone, initial }: Props) {
     void startCam();
   }
 
-  /** 연속 촬영. 한 장마다 3부터 1까지 센다 */
+  /** 연속 촬영. 한 장마다 5부터 1까지 세고, shoot now를 누르면 기다리지 않고 바로 찍는다 */
   async function shoot() {
     const v = videoRef.current;
     if (!v || camState !== "ready") return;
@@ -102,12 +110,22 @@ export default function Interior({ leaving, onExit, onDone, initial }: Props) {
     for (let i = 0; i < SHOTS; i++) {
       for (let n = COUNT_FROM; n >= 1; n--) {
         setCount(n);
-        await sleep(TICK);
+        // 기다리는 동안 shoot now가 눌리면 곧바로 깨어난다
+        const skipped = await new Promise<boolean>((res) => {
+          const t = setTimeout(() => res(false), TICK);
+          skipRef.current = () => {
+            clearTimeout(t);
+            res(true);
+          };
+        });
+        skipRef.current = null;
         if (run.current !== id) return;
+        if (skipped) break;
       }
       setCount(null);
       setFlash((f) => f + 1);
-      const canvas = developCut(v, zoom);
+      const tone = getTone();
+      const canvas = developRaw(await prepareRaw(rawCut(v, zoom), tone), tone);
       const shot = { canvas, url: canvas.toDataURL("image/jpeg", 0.72) };
       taken.push(shot);
       setShots([...taken]);
@@ -128,7 +146,8 @@ export default function Interior({ leaving, onExit, onDone, initial }: Props) {
     try {
       const taken: Shot[] = [];
       for (const file of Array.from(files).slice(0, SHOTS)) {
-        const canvas = developCut(await loadImage(file));
+        const tone = getTone();
+        const canvas = developRaw(await prepareRaw(rawCut(await loadImage(file)), tone), tone);
         if (run.current !== id) return;
         taken.push({ canvas, url: canvas.toDataURL("image/jpeg", 0.72) });
       }
@@ -138,6 +157,20 @@ export default function Interior({ leaving, onExit, onDone, initial }: Props) {
     } catch {
       if (run.current === id) setNote("could not open that photo. try another one");
     }
+  }
+
+  /** 카메라 없이 샘플 컷 6장으로 바로 고르기 단계로 간다 (뒷 단계 확인용) */
+  function loadSamples() {
+    ++run.current;
+    stopCam();
+    setNote(null);
+    const taken: Shot[] = makeSamplePhotos().map((raw) => {
+      const canvas = developRaw(raw);
+      return { canvas, url: canvas.toDataURL("image/jpeg", 0.72) };
+    });
+    setShots(taken);
+    setPicked([]);
+    setPhase("pick");
   }
 
   function toggle(i: number) {
@@ -228,14 +261,24 @@ export default function Interior({ leaving, onExit, onDone, initial }: Props) {
         {/* 버튼을 누르면 그 자리에서 카운트다운 */}
         <div className={css.action}>
           {phase === "shooting" ? (
-            <span className={css.count} aria-live="assertive">
-              {count !== null && <b key={`${shots.length}-${count}`}>{count}</b>}
-            </span>
+            <>
+              <span className={css.count} aria-live="assertive">
+                {count !== null && <b key={`${shots.length}-${count}`}>{count}</b>}
+              </span>
+              <button className={css.now} disabled={count === null} onClick={() => skipRef.current?.()}>
+                shoot now
+              </button>
+            </>
           ) : (
-            <button className={css.start} disabled={!camReady} onClick={() => void shoot()}>
-              <i />
-              start shooting
-            </button>
+            <>
+              <button className={css.start} disabled={!camReady} onClick={() => void shoot()}>
+                <i />
+                start shooting
+              </button>
+              <button className={css.sample} onClick={loadSamples}>
+                or try with sample photos
+              </button>
+            </>
           )}
         </div>
       </div>

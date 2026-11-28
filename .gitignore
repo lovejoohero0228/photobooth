@@ -42,3 +42,9 @@ next-env.d.ts
 
 # local LAN https cert
 /certificates
+
+# local design reference images (not for the repo)
+/public/외관_ref
+
+# MediaPipe wasm (postinstall이 node_modules에서 복사)
+/public/mediapipe/wasm

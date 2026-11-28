@@ -3,7 +3,8 @@
 
 import { CELL_PX, CUT_ASPECT } from "./config";
 import { frameGeometry, getFrame, type Frame } from "./frames";
-import { DEFAULT_TONE, type Tone } from "./tone";
+import { applyBeauty } from "./beauty";
+import { getTone, type Tone } from "./tone";
 
 type Source = HTMLVideoElement | HTMLImageElement | HTMLCanvasElement;
 
@@ -36,7 +37,8 @@ export function rawCut(src: Source, zoom = 1): HTMLCanvasElement {
 }
 
 /** 흑백으로 현상한 컷 (잘라낸 컷에 톤을 입힌다) */
-export function developRaw(raw: HTMLCanvasElement, tone: Tone = DEFAULT_TONE): HTMLCanvasElement {
+export function developRaw(raw: HTMLCanvasElement, toneArg?: Tone): HTMLCanvasElement {
+  const tone = toneArg ?? getTone();
   const out = document.createElement("canvas");
   out.width = raw.width;
   out.height = raw.height;
@@ -47,14 +49,15 @@ export function developRaw(raw: HTMLCanvasElement, tone: Tone = DEFAULT_TONE): H
   return out;
 }
 
-export function developCut(src: Source, zoom = 1, tone: Tone = DEFAULT_TONE): HTMLCanvasElement {
+export function developCut(src: Source, zoom = 1, tone?: Tone): HTMLCanvasElement {
   return developRaw(rawCut(src, zoom), tone);
 }
 
-/** 흑백 + 노출/대비 + 필름 입자. ctx.filter는 iOS에서 불안정해 픽셀을 직접 만진다 */
+/** 뷰티 → 색(채도) → 노출/대비 → 필름 입자 → 색조. ctx.filter는 iOS에서 불안정해 픽셀을 직접 만진다 */
 function silver(ctx: CanvasRenderingContext2D, w: number, h: number, t: Tone) {
   const img = ctx.getImageData(0, 0, w, h);
   const d = img.data;
+  applyBeauty(d, w, h, t);
   let s = (Math.random() * 2 ** 31) | 1;
   const rand = () => {
     s ^= s << 13;
@@ -63,18 +66,38 @@ function silver(ctx: CanvasRenderingContext2D, w: number, h: number, t: Tone) {
     return (s >>> 0) / 4294967296 - 0.5;
   };
   const inv = 1 / t.gamma;
-  for (let i = 0; i < d.length; i += 4) {
-    let v = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-    // 노출(gain) → 감마(밝은 쪽으로 끌어올림) → 대비 → 밝기
+  // 노출(gain) → 감마(중간 톤) → 대비 → 밝기
+  const curve = (v: number) => {
     v *= t.gain;
-    if (t.gamma !== 1) v = 255 * Math.pow(v > 255 ? 1 : v / 255, inv);
-    v = (v - 128) * t.contrast + 128 + t.offset;
-    const mid = 1 - Math.abs(v - 128) / 160;
-    v += rand() * 24 * (0.5 + mid);
-    v = v < 0 ? 0 : v > 255 ? 255 : v;
-    d[i] = Math.min(255, v + 4);
-    d[i + 1] = v + 1;
-    d[i + 2] = Math.max(0, v - 5);
+    if (t.gamma !== 1) v = 255 * Math.pow(v > 255 ? 1 : v < 0 ? 0 : v / 255, inv);
+    return (v - 128) * t.contrast + 128 + t.offset;
+  };
+  const mono = t.saturation === 0;
+  const wr = 4 * t.warmth;
+  const wg = 1 * t.warmth;
+  const wb = -5 * t.warmth;
+  for (let i = 0; i < d.length; i += 4) {
+    const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+    let r: number;
+    let g: number;
+    let b: number;
+    let mid: number;
+    if (mono) {
+      r = g = b = curve(lum);
+      mid = 1 - Math.abs(r - 128) / 160;
+    } else {
+      r = curve(lum + (d[i] - lum) * t.saturation);
+      g = curve(lum + (d[i + 1] - lum) * t.saturation);
+      b = curve(lum + (d[i + 2] - lum) * t.saturation);
+      mid = 1 - Math.abs(0.299 * r + 0.587 * g + 0.114 * b - 128) / 160;
+    }
+    const n = rand() * t.grain * (0.5 + mid);
+    r += n + wr;
+    g += n + wg;
+    b += n + wb;
+    d[i] = r < 0 ? 0 : r > 255 ? 255 : r;
+    d[i + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
+    d[i + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
   }
   ctx.putImageData(img, 0, 0);
 }
@@ -202,6 +225,8 @@ const bg = (key: string, name: string): BackdropDef => ({ key, name, src: `/bg/$
 export const BACKDROPS: BackdropDef[] = [
   bg("blue-stars", "sky stars"),
   bg("cream-wrinkled-dots", "wrinkle"),
+  bg("taupe-lace", "taupe"),
+  bg("fir-lights", "tree"),
   bg("pink-knit", "knit"),
   bg("orange-linen", "orange"),
   bg("green-cross", "cross"),
@@ -212,7 +237,7 @@ export const BACKDROPS: BackdropDef[] = [
   bg("purple-dots", "purple"),
   bg("wine-velvet", "wine"),
   bg("dusty-blue", "dusty"),
-  bg("navy-lace", "lace"),
+  bg("indigo-paper", "indigo"),
 ];
 export type Backdrop = string;
 
@@ -295,7 +320,8 @@ export async function composeFlat(cuts: HTMLCanvasElement[], frameKey: string): 
 /** 레이아웃별 최대 크기. 높이는 캔버스가 길어진 만큼(9:16) 같이 늘어난다 */
 function storyBox(frameKey: string, ratio: Ratio) {
   const b = getFrame(frameKey).story;
-  return { w: b.w, h: (b.h * heightOf(ratio)) / 1440 };
+  // 9:16은 세로로 길어도 사진은 3:4보다 조금 작게 놓는다 (여백이 더 많이 보이도록)
+  return ratio === "9:16" ? { w: b.w * 0.86, h: b.h * 0.92 } : { w: b.w, h: b.h };
 }
 
 /** 저장 이미지에서 사진이 차지하는 폭의 비율 — 화면 미리보기도 같은 식으로 맞춘다.

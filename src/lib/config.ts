@@ -7,9 +7,9 @@ export const CUT_ASPECT = 0.8;
 /** 한 번에 찍는 장수 */
 export const SHOTS = 6;
 /** 화면에 보이는 카운트다운 시작 숫자 */
-export const COUNT_FROM = 3;
+export const COUNT_FROM = 5;
 /** 그 카운트다운이 걸리는 시간(ms) — 실제 1초에 하나씩 */
-export const COUNT_MS = 3000;
+export const COUNT_MS = 5000;
 /** 찍힌 컷을 화면에 보여주는 시간(ms) */
 export const STILL_MS = 700;
 /** 인화 대기(초) */

@@ -108,7 +108,7 @@ export default function TonePage() {
 
   return (
     <main style={{ minHeight: "100dvh", padding: "16px 14px 60px", background: "#0b0a09", color: "#ede4d0", maxWidth: 560, margin: "0 auto" }}>
-      <h1 style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4 }}>tone lab</h1>
+      <h1 style={{ fontSize: 16, fontWeight: 400, letterSpacing: "0.1em", marginBottom: 4 }}>tone lab</h1>
       <p style={{ fontSize: 13, opacity: 0.65, marginBottom: 14, lineHeight: 1.5 }}>
         take or load a photo, then adjust tone, color and beauty. changes show instantly. &lsquo;use on this device&rsquo; makes the booth use these values.
       </p>
@@ -224,7 +224,7 @@ export default function TonePage() {
       {/* 저장 */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "2px 20px", marginTop: 22 }}>
         <button
-          style={{ ...btn, color: "#d9bf72", fontWeight: 700 }}
+          style={{ ...btn, color: "#d9bf72", fontWeight: 400 }}
           onClick={() => {
             saveTone(tone);
             setSaved(true);

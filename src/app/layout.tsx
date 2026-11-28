@@ -1,19 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Google_Sans } from "next/font/google";
-import localFont from "next/font/local";
+import { Questrial } from "next/font/google";
 import "./globals.css";
 
-// 영문: Google Sans
-const en = Google_Sans({ variable: "--font-en", subsets: ["latin"], weight: ["400", "500", "700"] });
-// 한글: Monoplex KR (눈누 배포본)
-const ko = localFont({
-  variable: "--font-ko",
-  display: "swap",
-  src: [
-    { path: "./fonts/MonoplexKR-Regular.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/MonoplexKR-Bold.woff2", weight: "700", style: "normal" },
-  ],
-});
+// 영문: Questrial (SIL OFL 1.1). 굵기는 Regular(400) 하나뿐이라, 화면의 모든 굵기를 400으로 맞췄다
+const en = Questrial({ variable: "--font-en", subsets: ["latin"], weight: "400" });
 
 export const metadata: Metadata = {
   title: "Photos",
@@ -30,7 +20,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${en.variable} ${ko.variable}`}>
+    <html lang="en" className={en.variable}>
       <body className="grain">{children}</body>
     </html>
   );

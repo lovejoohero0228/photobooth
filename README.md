@@ -120,6 +120,14 @@ cloudflared tunnel --url http://localhost:3123
 
 `/tone` 페이지에서 노출·대비·색감과 뷰티 효과(피부 매끈하게, 빛번짐, 그늘 밝히기)를 슬라이더로 직접 만져 볼 수 있습니다. 사진을 찍거나 불러오면 원본과 결과가 나란히 보이고, `use on this device`를 누르면 그 기기의 부스가 그 값을 씁니다. 마음에 드는 값은 `copy values`로 복사해 `DEFAULT_TONE`에 옮겨 적으면 모두에게 적용됩니다.
 
+## 폰트 · 라이선스
+
+| 폰트 | 용도 | 라이선스 |
+|---|---|---|
+| [Questrial](https://fonts.google.com/specimen/Questrial) | 영문 전체 (간판 · 버튼 · 안내) | SIL Open Font License 1.1 — Copyright 2011 The Questrial Project Authors |
+
+Questrial은 Next.js의 `next/font/google`로 빌드 때 받아 우리 서버에서 함께 내보냅니다. SIL OFL 1.1은 상업적 사용·웹 임베딩·재배포를 허용하지만, 폰트 파일 자체를 단독으로 판매하는 것과 폰트를 고쳐서 같은 이름으로 배포하는 것은 금지합니다.
+
 ## 구조
 
 | 경로 | 내용 |

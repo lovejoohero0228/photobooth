@@ -34,7 +34,7 @@ export default function InAppNotice() {
     >
       camera or saving may be blocked inside {IN_APP_LABEL[kind]}.{" "}
       {ext ? (
-        <a href={ext} style={{ fontWeight: 700, textDecoration: "underline" }}>
+        <a href={ext} style={{ fontWeight: 400, textDecoration: "underline" }}>
           open in {isIOS() ? "safari" : "chrome"}
         </a>
       ) : (

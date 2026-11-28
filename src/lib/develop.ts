@@ -195,11 +195,11 @@ export async function composeStrip(cuts: HTMLCanvasElement[], frame: Frame, date
   // 아래 여백에 작게 찍힌 날짜: 사진 오른쪽 끝에 맞춘다
   const font = cssFont("--font-en", "sans-serif");
   try {
-    await document.fonts.load(`500 ${Math.round(CELL_PX * 0.03)}px ${font}`);
+    await document.fonts.load(`400 ${Math.round(CELL_PX * 0.03)}px ${font}`);
   } catch {}
   ctx.fillStyle = "rgba(233,226,210,0.62)";
   ctx.textBaseline = "middle";
-  ctx.font = `500 ${Math.round(CELL_PX * 0.03)}px ${font}`;
+  ctx.font = `400 ${Math.round(CELL_PX * 0.03)}px ${font}`;
   const ymd = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
   spaced(ctx, ymd, (g.cells[0].x + g.cells[0].w) * u, (g.footY + g.footH * 0.52) * u, CELL_PX * 0.008, "right");
 

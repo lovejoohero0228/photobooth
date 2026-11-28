@@ -63,27 +63,27 @@ export interface Tone {
 /** 이전 톤 (비교용으로 남겨 둔다) */
 const PREVIOUS_TONE: Tone = { gain: 1, gamma: 1, contrast: 1.38, offset: 8, vignette: 0.5, grain: 24, saturation: 0, warmth: 1, smooth: 0, glow: 0, lift: 0, slim: 0, eyes: 0, nose: 0, chin: 0, faceLen: 0, forehead: 0, smile: 0, lips: 0, eyeDist: 0, brows: 0, underEye: 0, eyeBright: 0, teeth: 0, shine: 0, contour: 0, blemish: 0 };
 
-/** 지금 쓰는 톤: 직접 찾은 최적값 (밝고 부드러운 흑백에 약한 얼굴 보정) */
+/** 지금 쓰는 톤: 직접 찾은 최적값 (흑백, 대비 있는 톤에 약한 얼굴 보정) */
 export const DEFAULT_TONE: Tone = {
-  gain: 1.25,
-  gamma: 1.16,
-  contrast: 1.55,
+  gain: 0.97,
+  gamma: 1.12,
+  contrast: 1.62,
   offset: 1,
-  vignette: 0.6,
-  grain: 15,
+  vignette: 0.62,
+  grain: 16,
   saturation: 0,
   warmth: 0,
   smooth: 0.06,
   glow: 0.04,
   lift: 0,
   slim: 0.02,
-  eyes: 0.02,
-  nose: 0.09,
+  eyes: 0.04,
+  nose: 0.2,
   chin: 0,
-  faceLen: 0.06,
+  faceLen: 0.09,
   forehead: 0,
   smile: 0.01,
-  lips: 0.02,
+  lips: 0.08,
   eyeDist: 0,
   brows: 0,
   underEye: 0.05,

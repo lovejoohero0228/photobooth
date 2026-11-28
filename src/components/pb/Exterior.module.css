@@ -513,26 +513,12 @@
   top: 22px;
   width: 8px;
   height: 96px;
+  /* 기둥 아랫면에 곡률: 원통을 살짝 위에서 보면 밑단이 아래로 볼록한 타원 호가 된다 */
+  border-radius: 0 0 50% 50% / 0 0 3.2px 3.2px;
   background:
     /* 방석 바로 아래는 그늘, 바닥 가까이는 주변이 가려져 어둡다 */
     linear-gradient(180deg, rgba(0, 0, 0, 0.82) 0, rgba(0, 0, 0, 0.4) 11%, rgba(0, 0, 0, 0.08) 30%, rgba(0, 0, 0, 0.05) 55%, rgba(0, 0, 0, 0.75) 100%),
     linear-gradient(90deg, #1f2226 0%, #7d838a 20%, #cfd3d7 38%, #868b92 62%, #1f2226 100%);
-}
-/* 기둥 아래의 둥근 깃(칼라): 가로로 딱 잘린 끝을 가리고 받침으로 매끈하게 이어진다 */
-.leg::after {
-  content: "";
-  position: absolute;
-  left: -7px;
-  bottom: -5px;
-  width: 22px;
-  height: 11px;
-  border-radius: 50%;
-  background:
-    radial-gradient(ellipse 60% 45% at 38% 28%, rgba(255, 255, 255, 0.45) 0%, transparent 100%),
-    linear-gradient(90deg, #23262a 0%, #8c9298 28%, #c9cdd2 45%, #7d838a 70%, #25282c 100%);
-  box-shadow:
-    0 2px 2px rgba(0, 0, 0, 0.85),
-    inset 0 -2px 2px rgba(0, 0, 0, 0.55);
 }
 .leg::before {
   content: "";

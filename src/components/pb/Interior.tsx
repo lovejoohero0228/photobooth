@@ -61,7 +61,7 @@ function StripPreview({ frame, shots, picked }: { frame: Frame; shots: Shot[]; p
 }
 
 export default function Interior({ leaving, onExit, onDone, initial }: Props) {
-  const { videoRef, state: camState, error: camError, zoom, level, setLevel, start: startCam, stop: stopCam } = useCamera();
+  const { videoRef, state: camState, error: camError, zoom, level, setLevel, hasTorch, torch, start: startCam, stop: stopCam } = useCamera();
   const [phase, setPhase] = useState<Phase>(initial ? "pick" : "camera");
   const [shots, setShots] = useState<Shot[]>(initial?.shots ?? []);
   const [count, setCount] = useState<number | null>(null);
@@ -70,6 +70,9 @@ export default function Interior({ leaving, onExit, onDone, initial }: Props) {
   const [frameKey, setFrameKey] = useState(initial?.frame ?? "four");
   const [picked, setPicked] = useState<number[]>(initial?.picked ?? []);
   const [note, setNote] = useState<string | null>(null);
+  /** 촬영 플래시 켜기(기억해 둔다) / 지금 화면이 환하게 켜져 있는가 */
+  const [flashOn, setFlashOn] = useState(false);
+  const [lit, setLit] = useState(false);
 
   const frame = getFrame(frameKey);
   const run = useRef(0);
@@ -80,6 +83,11 @@ export default function Interior({ leaving, onExit, onDone, initial }: Props) {
   // 들어오자마자 카메라를 켠다
   useEffect(() => {
     if (!initial) void Promise.resolve().then(startCam);
+    void Promise.resolve().then(() => {
+      try {
+        if (localStorage.getItem("pb.flash") === "1") setFlashOn(true);
+      } catch {}
+    });
     // 얼굴 보정이 켜져 있으면 모델을 미리 읽어 둔다
     const t = getTone();
     if (hasFaceFx(t)) warmFaceModel();
@@ -108,8 +116,16 @@ export default function Interior({ leaving, onExit, onDone, initial }: Props) {
     setPhase("shooting");
     const taken: Shot[] = [];
     for (let i = 0; i < SHOTS; i++) {
+      let preflashed = false;
+      /** 플래시: 내장 플래시(토치)가 있으면 그걸 켜고, 없으면(전면 카메라 대부분) 화면을 환하게 켠다 */
+      const preflash = async () => {
+        if (!flashOn || preflashed) return;
+        preflashed = true;
+        if (!(await torch(true))) setLit(true);
+      };
       for (let n = COUNT_FROM; n >= 1; n--) {
         setCount(n);
+        if (n === 1) void preflash();
         // 기다리는 동안 shoot now가 눌리면 곧바로 깨어난다
         const skipped = await new Promise<boolean>((res) => {
           const t = setTimeout(() => res(false), TICK);
@@ -122,6 +138,12 @@ export default function Interior({ leaving, onExit, onDone, initial }: Props) {
         if (run.current !== id) return;
         if (skipped) break;
       }
+      // shoot now로 건너뛰었어도 플래시가 켜진 뒤 잠깐(0.35초) 기다렸다가 찍는다
+      if (flashOn && !preflashed) {
+        await preflash();
+        await sleep(350);
+        if (run.current !== id) return;
+      }
       setCount(null);
       setFlash((f) => f + 1);
       const tone = getTone();
@@ -130,11 +152,16 @@ export default function Interior({ leaving, onExit, onDone, initial }: Props) {
       taken.push(shot);
       setShots([...taken]);
       setStill(shot.url);
+      if (flashOn) {
+        setLit(false);
+        void torch(false);
+      }
       await sleep(STILL_MS);
       if (run.current !== id) return;
       setStill(null);
     }
     stopCam();
+    setLit(false);
     setPhase("pick");
   }
 
@@ -236,6 +263,22 @@ export default function Interior({ leaving, onExit, onDone, initial }: Props) {
                       {z}x
                     </button>
                   ))}
+                  <span aria-hidden="true" className={css.zoomSep} />
+                  <button
+                    role="switch"
+                    aria-label={hasTorch ? "flash (camera flash)" : "flash (screen flash)"}
+                    aria-checked={flashOn}
+                    data-on={flashOn}
+                    onClick={() => {
+                      const next = !flashOn;
+                      setFlashOn(next);
+                      try {
+                        localStorage.setItem("pb.flash", next ? "1" : "0");
+                      } catch {}
+                    }}
+                  >
+                    flash {flashOn ? "on" : "off"}
+                  </button>
                 </div>
               )}
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -322,6 +365,8 @@ export default function Interior({ leaving, onExit, onDone, initial }: Props) {
         </p>
       )}
       <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => (void upload(e.target.files), (e.target.value = ""))} />
+      {/* 화면 플래시: 촬영 직전에 화면 전체를 환하게 켠다 */}
+      <div className={css.lit} data-on={lit} aria-hidden="true" />
       {flash > 0 && <div key={flash} className={css.flash} />}
     </div>
   );

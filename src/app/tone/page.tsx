@@ -4,7 +4,7 @@
 // 마음에 드는 값을 이 기기에 저장해 앱에서 바로 써 보거나 DEFAULT_TONE에 옮겨 적는다.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCamera } from "@/components/camera/useCamera";
-import { developRaw, loadImage, rawCut } from "@/lib/develop";
+import { developRaw, loadImage, paperGrain, rawCut } from "@/lib/develop";
 import { makeSamplePhotos } from "@/lib/samples";
 import { detectFaces, faceFx, warmFaceModel, type Face } from "@/lib/face";
 import { addPreset, clearTone, DEFAULT_TONE, getTone, hasSavedTone, loadPresets, removePreset, saveTone, TONE_CONTROLS, TONE_PRESETS, type SavedPreset, type Tone } from "@/lib/tone";
@@ -22,18 +22,25 @@ function shrink(raw: HTMLCanvasElement): HTMLCanvasElement {
   return c;
 }
 
-function Canvas({ src, tone, faces, caption }: { src: HTMLCanvasElement; tone?: Tone; faces?: Face[] | null; caption: string }) {
+function Canvas({ src, tone, faces, caption, printed }: { src: HTMLCanvasElement; tone?: Tone; faces?: Face[] | null; caption: string; printed?: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const c = ref.current;
     if (!c) return;
     // 얼굴 보정(모양 · 피부 · 눈) → 톤 · 뷰티
-    const base = tone && faces?.length ? faceFx(src, faces, tone) : src;
-    const out = tone ? developRaw(base, tone) : src;
-    c.width = out.width;
-    c.height = out.height;
-    c.getContext("2d")!.drawImage(out, 0, 0);
-  }, [src, tone, faces]);
+    // 슬라이더를 빠르게 움직일 때는 잠깐 기다렸다가 한 번만 그린다 (원본 해상도는 무겁다)
+    const id = setTimeout(() => {
+      const base = tone && faces?.length ? faceFx(src, faces, tone) : src;
+      const out = tone ? developRaw(base, tone) : src;
+      c.width = out.width;
+      c.height = out.height;
+      const ctx = c.getContext("2d")!;
+      ctx.drawImage(out, 0, 0);
+      // 인화한 사진처럼: 인화지 결까지 얹는다
+      if (tone && printed) paperGrain(ctx, c.width, c.height);
+    }, printed ? 120 : 0);
+    return () => clearTimeout(id);
+  }, [src, tone, faces, printed]);
   return (
     <figure style={{ margin: 0 }}>
       <canvas ref={ref} style={{ width: "100%", display: "block", background: "#000" }} />
@@ -54,6 +61,8 @@ export default function TonePage() {
   /** 사진에서 찾은 얼굴들. null이면 아직 / 실패 */
   const [faces, setFaces] = useState<Face[] | null>(null);
   const [faceState, setFaceState] = useState<"idle" | "finding" | "found" | "none" | "failed">("idle");
+  /** 앱에서 실제로 인화될 때와 똑같이: 원본 해상도 + 인화지 결 */
+  const [exact, setExact] = useState(true);
   const file = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -135,11 +144,16 @@ export default function TonePage() {
       {/* 전 · 후 */}
       {small ? (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, position: "sticky", top: 0, zIndex: 2, padding: "8px 0", background: "linear-gradient(#0b0a09 85%, transparent)" }}>
-          <Canvas src={small} caption="original" />
-          <Canvas src={small} tone={tone} faces={faces} caption="result" />
+          <Canvas src={exact && raw ? raw : small} caption="original" />
+          <Canvas src={exact && raw ? raw : small} tone={tone} faces={faces} caption={exact ? "result (as printed)" : "result (fast)"} printed={exact} />
         </div>
       ) : (
         <p style={{ textAlign: "center", fontSize: 13, opacity: 0.5, padding: "30px 0" }}>capture, upload or pick a sample to start</p>
+      )}
+      {small && (
+        <button onClick={() => setExact((v) => !v)} style={{ display: "block", margin: "2px auto 0", fontSize: 12.5, letterSpacing: "0.06em", minHeight: 36, color: exact ? "#d9bf72" : undefined, opacity: exact ? 1 : 0.7 }}>
+          {exact ? "exact preview: full resolution + paper grain (on)" : "exact preview (off) — fast but differs from the booth"}
+        </button>
       )}
       {small && (
         <p style={{ fontSize: 12, opacity: 0.6, minHeight: 18, textAlign: "center" }}>

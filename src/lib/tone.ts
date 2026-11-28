@@ -65,10 +65,10 @@ const PREVIOUS_TONE: Tone = { gain: 1, gamma: 1, contrast: 1.38, offset: 8, vign
 
 /** 지금 쓰는 톤: 직접 찾은 최적값 (흑백, 대비 있는 톤에 약한 얼굴 보정) */
 export const DEFAULT_TONE: Tone = {
-  gain: 0.97,
+  gain: 1,
   gamma: 1.12,
   contrast: 1.62,
-  offset: 1,
+  offset: 2,
   vignette: 0.62,
   grain: 16,
   saturation: 0,
@@ -171,7 +171,9 @@ export const TONE_PRESETS: { key: string; name: string; tone: Tone }[] = [
   { key: "colorsoft", name: "soft color", tone: { ...DEFAULT_TONE, gain: 1.08, gamma: 1.15, contrast: 1.25, offset: 8, saturation: 0.7, warmth: 0.6, smooth: 0.5, glow: 0.3, lift: 0.25, grain: 14 } },
 ];
 
-const KEY = "pb.tone";
+/** 저장 키. 값을 처음부터 다시 맞추려고 v2로 올렸다: 이전 키("pb.tone")에 저장돼 있던 값은 모든 기기에서 무시되고 지워진다 */
+const KEY = "pb.tone.v2";
+const OLD_KEY = "pb.tone";
 const PRESET_KEY = "pb.tone.presets";
 
 /** 내가 저장한 프리셋 (이 기기) */
@@ -216,6 +218,7 @@ export function removePreset(id: number): SavedPreset[] {
 /** 이 기기에 저장해 둔 톤(있으면)을 기본 톤 위에 얹은 값. 저장해 둔 게 없으면 DEFAULT_TONE */
 export function getTone(): Tone {
   try {
+    if (typeof localStorage !== "undefined" && localStorage.getItem(OLD_KEY) !== null) localStorage.removeItem(OLD_KEY);
     const raw = typeof localStorage !== "undefined" ? localStorage.getItem(KEY) : null;
     if (raw) return { ...DEFAULT_TONE, ...(JSON.parse(raw) as Partial<Tone>) };
   } catch {

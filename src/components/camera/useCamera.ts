@@ -19,6 +19,9 @@ export function useCamera() {
   const levelRef = useRef(1);
   /** 기기가 하드웨어 줌을 주면 그걸 쓴다 */
   const hwRef = useRef<{ track: MediaStreamTrack; min: number; max: number } | null>(null);
+  /** 카메라 내장 플래시(토치)를 켤 수 있는 트랙 */
+  const torchRef = useRef<MediaStreamTrack | null>(null);
+  const [hasTorch, setHasTorch] = useState(false);
 
   const apply = useCallback(async (l: number) => {
     const hw = hwRef.current;
@@ -95,10 +98,16 @@ export function useCamera() {
       levelRef.current = l;
       setLevelState(l);
       hwRef.current = null;
+      torchRef.current = null;
+      setHasTorch(false);
       try {
         const track = stream.getVideoTracks()[0];
         const caps = track.getCapabilities?.() as (MediaTrackCapabilities & { zoom?: { min: number; max: number } }) | undefined;
         if (caps?.zoom) hwRef.current = { track, min: caps.zoom.min, max: caps.zoom.max };
+        if ((caps as { torch?: boolean } | undefined)?.torch) {
+          torchRef.current = track;
+          setHasTorch(true);
+        }
       } catch {}
       await apply(l);
       const v = videoRef.current;
@@ -125,7 +134,19 @@ export function useCamera() {
     }
   }, [stop, apply]);
 
+  /** 내장 플래시(토치)를 켜고 끈다. 이 카메라가 지원하지 않으면 false */
+  const torch = useCallback(async (on: boolean): Promise<boolean> => {
+    const track = torchRef.current;
+    if (!track) return false;
+    try {
+      await track.applyConstraints({ advanced: [{ torch: on } as MediaTrackConstraintSet] });
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
   useEffect(() => stop, [stop]);
 
-  return { videoRef, state, error, size, zoom, level, setLevel, start, stop };
+  return { videoRef, state, error, size, zoom, level, setLevel, hasTorch, torch, start, stop };
 }

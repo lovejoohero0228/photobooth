@@ -91,7 +91,7 @@
     /* 번지는 불빛 */
     0 0 26px 5px rgba(255, 214, 160, 0.3),
     0 0 90px 26px rgba(255, 190, 120, 0.14);
-  animation: hum 7s steps(1) infinite;
+  animation: hum 4.2s steps(1) infinite;
 }
 .signFace {
   /* 금속 테두리를 얇게 */
@@ -132,20 +132,39 @@
     0 1px 0 rgba(40, 10, 0, 0.25);
 }
 @keyframes hum {
+  /* 네온 간판처럼 자주, 확실히 깜빡인다: 짧게 꺼질 듯 어두워졌다가 돌아오기를 몇 번 반복 */
   0%,
   100% {
     filter: none;
   }
-  46% {
-    filter: brightness(0.86);
+  7% {
+    filter: brightness(0.55);
   }
-  47% {
+  8.5% {
     filter: none;
   }
-  49% {
-    filter: brightness(0.92);
+  10% {
+    filter: brightness(0.72);
   }
-  50% {
+  11.5% {
+    filter: none;
+  }
+  47% {
+    filter: brightness(0.5);
+  }
+  48.2% {
+    filter: brightness(0.85);
+  }
+  49.5% {
+    filter: brightness(0.45);
+  }
+  51% {
+    filter: none;
+  }
+  74% {
+    filter: brightness(0.7);
+  }
+  75.5% {
     filter: none;
   }
 }

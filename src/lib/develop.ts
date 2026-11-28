@@ -148,6 +148,12 @@ function spaced(ctx: CanvasRenderingContext2D, text: string, ax: number, y: numb
   });
 }
 
+/** 인화지 결: 인화한 스트립 전체에 얹는 아주 옅은 잡음 (/tone 페이지의 "as printed"도 같은 걸 쓴다) */
+export function paperGrain(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  ctx.fillStyle = ctx.createPattern(noiseTile(12), "repeat")!;
+  ctx.fillRect(0, 0, w, h);
+}
+
 function noiseTile(alpha: number) {
   const n = document.createElement("canvas");
   n.width = n.height = 128;
@@ -197,9 +203,7 @@ export async function composeStrip(cuts: HTMLCanvasElement[], frame: Frame, date
   const ymd = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
   spaced(ctx, ymd, (g.cells[0].x + g.cells[0].w) * u, (g.footY + g.footH * 0.52) * u, CELL_PX * 0.008, "right");
 
-  // 인화지 결
-  ctx.fillStyle = ctx.createPattern(noiseTile(12), "repeat")!;
-  ctx.fillRect(0, 0, c.width, c.height);
+  paperGrain(ctx, c.width, c.height);
 
   const full = await toBlob(c, 0.92);
   const ts = Math.min(1, 480 / Math.max(c.width, c.height));

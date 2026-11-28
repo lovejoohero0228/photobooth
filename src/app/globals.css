@@ -36,16 +36,17 @@
 
   /* 모든 화면이 같이 쓰는 원목 판자: 첫 화면 부스 본체의 질감과 색 */
   --wood-boards:
-    /* 판자 하나하나의 둥근 단면 명암: 가운데가 살짝 밝고 가장자리가 어둡다 */
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.16) 0, rgba(0, 0, 0, 0) 5px, rgba(255, 235, 200, 0.07) 10px, rgba(0, 0, 0, 0) 14px, rgba(0, 0, 0, 0.12) 18.2px),
+    /* 판자 하나하나의 둥근 단면 명암 */
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.16) 0, rgba(0, 0, 0, 0) 3.3px, rgba(255, 235, 200, 0.07) 6.7px, rgba(0, 0, 0, 0) 9.4px, rgba(0, 0, 0, 0.12) 12.13px),
     /* 옹이 */
     radial-gradient(ellipse 5px 12px at 46px 130px, rgba(34, 17, 4, 0.7) 0 28%, rgba(34, 17, 4, 0.28) 62%, transparent 100%),
     radial-gradient(ellipse 4px 9px at 200px 380px, rgba(34, 17, 4, 0.65) 0 28%, rgba(34, 17, 4, 0.25) 62%, transparent 100%),
-    repeating-linear-gradient(90deg, rgba(28, 11, 2, 0.75) 0 1.1px, rgba(248, 200, 157, 0.2) 1.1px 2.2px, transparent 2.2px 17.4px, rgba(56, 26, 9, 0.25) 17.4px 18.2px),
+    /* 판자 사이 홈: 어두운 골 + 옆의 밝은 모서리 (폭 12.13px = 이전의 2/3) */
+    repeating-linear-gradient(90deg, rgba(28, 11, 2, 0.75) 0 0.8px, rgba(248, 200, 157, 0.2) 0.8px 1.6px, transparent 1.6px 11.6px, rgba(56, 26, 9, 0.25) 11.6px 12.13px),
     var(--tex-wood-d),
     var(--tex-wood-l),
     var(--tex-blotch),
-    repeating-linear-gradient(90deg, #7e532f 0 18.2px, #724926 18.2px 36.4px, #845934 36.4px 54.6px, #764c28 54.6px 72.8px, #7d512d 72.8px 91px),
+    repeating-linear-gradient(90deg, #7e532f 0 12.13px, #724926 12.13px 24.26px, #845934 24.26px 36.39px, #764c28 36.39px 48.52px, #7d512d 48.52px 60.65px),
     #794e2b;
   --wood-boards-size: auto, 360px 700px, 420px 560px, auto, 150px 300px, 130px 260px, 300px 300px, auto, auto;
 

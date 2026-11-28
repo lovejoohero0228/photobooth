@@ -4,6 +4,9 @@
 // 360×640 기준 좌표로 짜고 화면에 맞춰 통째로 확대한다.
 import { useEffect, useRef, useState } from "react";
 import css from "./Exterior.module.css";
+import Garland from "./Garland";
+import BoothSides, { BoothShade } from "./BoothSides";
+import Floor from "./Floor";
 
 interface Props {
   /** 커튼이 걷힌 상태 */
@@ -17,7 +20,6 @@ interface Props {
   onAlbum: () => void;
 }
 
-const BULBS = 11;
 const PLEATS = 12;
 // 커튼 밑단: 주름마다 살짝 들쭉날쭉
 const HEM = `polygon(0 0, 100% 0, ${Array.from({ length: PLEATS * 2 + 1 }, (_, i) => `${100 - (i * 100) / (PLEATS * 2)}% ${i % 2 ? 98.4 + (i % 3) * 0.3 : 100}%`).join(", ")})`;
@@ -50,19 +52,14 @@ export default function Exterior({ open, out, latest, total, onEnter, onAlbum }:
           <i className={css.post} style={{ left: 38 }} />
           <i className={css.post} style={{ left: 243 }} />
 
-          {/* 지붕 띠에 매달린 전구 */}
+          {/* 지붕 띠, 그 위에 크리스마스 가랜드 */}
           <div className={css.fascia} />
-          <div className={css.bulbs}>
-            {Array.from({ length: BULBS }, (_, i) => (
-              <i key={i} data-odd={i % 2 === 1}>
-                <b />
-              </i>
-            ))}
-          </div>
+          <Garland />
 
           {/* 본체 */}
           <div className={css.body}>
             <div className={css.boards} />
+            <BoothSides />
             <div className={css.spill} />
 
             <div className={`${css.plate} f-plate`} aria-hidden="true">
@@ -91,12 +88,16 @@ export default function Exterior({ open, out, latest, total, onEnter, onAlbum }:
                 <div className={css.wallUp} />
                 <div className={css.wainscot} />
                 <div className={css.floorBox}>
-                  <div className={css.floor} />
+                  <Floor />
                 </div>
                 <div className={css.stool}>
-                  <i className={css.seat} />
-                  <i className={css.leg} />
+                  {/* 바닥에 닿는 그림자: 받침 아래의 짙은 접촉 그림자, 기둥이 바닥에 드리우는 긴 그림자, 광택 바닥에 비친 상 */}
+                  <i className={css.castShadow} />
+                  <i className={css.contact} />
+                  <i className={css.reflect} />
                   <i className={css.foot} />
+                  <i className={css.leg} />
+                  <i className={css.seat} />
                 </div>
                 <div className={css.roomShade} />
               </div>
@@ -107,14 +108,10 @@ export default function Exterior({ open, out, latest, total, onEnter, onAlbum }:
               <div className={css.card}>enter</div>
             </div>
 
-            <div className={`${css.vsign} f-sign`}>
-              {"PHOTOS".split("").map((ch, i) => (
-                <span key={i}>{ch}</span>
-              ))}
-            </div>
-
             <div className={css.kick} style={{ left: 0, width: 136 }} />
-            <div className={css.kick} style={{ left: 276, width: 52 }} />
+            <div className={css.kick} style={{ left: 276, width: 52, transform: "scaleX(-1)" }} />
+            {/* 옆면의 곡면 명암: 나무와 크롬 밑판 모두 같은 곡률로 */}
+            <BoothShade />
             <div className={css.flashLight} />
           </div>
 
